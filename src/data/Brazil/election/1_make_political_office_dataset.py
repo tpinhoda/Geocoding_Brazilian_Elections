@@ -47,7 +47,6 @@ def structure_data(political_office, input_filepath, output_filepath):
         
         #Save the data as csv
         structured_data.to_csv(output_filepath+filename, index=False)
-        logger.info('Saved in: {}'.format(output_filepath+filename))
     
     logger.info('Done!')
 
