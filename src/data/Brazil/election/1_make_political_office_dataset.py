@@ -42,6 +42,10 @@ def structure_data(political_office, input_filepath, output_filepath):
         #Joining votes and filtered dataframes
         structured_data = filtered_raw_data.join(votes)
 
+        #Drop uncessary collumns
+        unecessary_cols = ['NR_PARTIDO', 'SG_PARTIDO', 'NM_PARTIDO', 'CD_TIPO_VOTAVEL', 'DS_TIPO_VOTAVEL', 'NR_VOTAVEL', 'NM_VOTAVEL', 'QT_VOTOS']
+        structured_data.drop(labels=unecessary_cols, axis = 1, inplace=True)
+
         #Reset indexes names
         structured_data.reset_index(inplace=True) 
         
@@ -60,11 +64,12 @@ if __name__ == '__main__':
     #Set data parammeters
     election_year = '2018'
     political_office = 'Presidente'
+    office_folder = 'president'
     turn = '2'
 
     #Set paths
     input_filepath = project_dir + '/data/raw/Brazil/election_data/{}/turn_{}/'.format(election_year,turn)
-    output_filepath = project_dir + '/data/interim/Brazil/election_data/{}/{}/turn_{}/states/'.format(election_year,political_office,turn)
+    output_filepath = project_dir + '/data/interim/Brazil/election_data/{}/{}/turn_{}/states/'.format(election_year,office_folder,turn)
 
     #Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
