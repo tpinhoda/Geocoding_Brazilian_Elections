@@ -4,6 +4,7 @@ from os.path import isfile, join
 from pathlib import Path
 
 import logging
+from tqdm import tqdm
 
 import pandas as pd
 
@@ -14,7 +15,7 @@ def process_data(tse_input_filepath, geo_input_filepath, output_filepath):
 		processed data with geocoding by polling place (saved in ../processed).
 	"""
 	logger = logging.getLogger(__name__)
-	logger.info('Processing data...')
+	logger.info('1 - Processing data')
 
 	# Loading data with geocode information from polling places
 	data_geo = pd.read_csv(geo_input_filepath)
@@ -26,8 +27,8 @@ def process_data(tse_input_filepath, geo_input_filepath, output_filepath):
 	filenames = [filename for filename in listdir(tse_input_filepath) if isfile(join(tse_input_filepath, filename))]
 
 	# For each state...
-	for filename in filenames:
-		logger.info('Processing {} interim data'.format(filename))
+	for filename in tqdm(filenames):
+		#logger.info('Processing {} interim data'.format(filename))
 
 		#Loading raw data
 		filepath = tse_input_filepath + filename
@@ -37,12 +38,12 @@ def process_data(tse_input_filepath, geo_input_filepath, output_filepath):
 		data_tse['id'] = data_tse['NM_MUNICIPIO'] + data_tse['NR_ZONA'].astype(str)  + data_tse['NR_LOCAL_VOTACAO'].astype(str)
 
 		# Merge datasets
-		merged = data_tse.merge(data_geo[['local_unico','lat','lon','id']], on='id', how='left')
+		merged = data_tse.merge(data_geo[['id','COD_LOCALIDADE_IBGE','local_unico','lat','lon','geometry','rural','capital','precision', 'lev_dist', 'city_limits']], on='id', how='left')
 
 		# Save the data as csv
 		merged.to_csv(output_filepath+filename, index=False)
 
-	logger.info('Done!')
+	logger.info('1.1 - Done!')
 
 
 
@@ -58,7 +59,7 @@ if __name__ == '__main__':
 
 	#Set paths
 	tse_input_filepath = project_dir + '/data/interim/Brazil/election_data/{}/{}/turn_{}/states/'.format(election_year,office_folder,turn)
-	geo_input_filepath = project_dir + '/data/interim/Brazil/election_data/{}/polling_places/polling_places.csv'.format(election_year)
+	geo_input_filepath = project_dir + '/data/processed/Brazil/election_data/{}/polling_places/polling_places.csv'.format(election_year)
 	output_filepath = project_dir + '/data/processed/Brazil/election_data/{}/{}/turn_{}/states/'.format(election_year,office_folder,turn)
 
 	#Log text to show on screen
