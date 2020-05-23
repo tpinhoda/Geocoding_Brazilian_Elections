@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import warnings
+warnings.filterwarnings('ignore')
+
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -58,7 +61,7 @@ def structure_data(political_office, input_filepath, output_filepath):
 
 if __name__ == '__main__':
     #Project path
-    project_dir = str(Path(__file__).resolve().parents[4])
+    project_dir = str(Path(__file__).resolve().parents[5])
     print(project_dir)
 
     #Set data parammeters

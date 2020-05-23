@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # To run this script the 2_make_geocoded_dataset.py should be already executed
+import warnings
+warnings.filterwarnings('ignore')
 
 from os import listdir
 from os.path import isfile, join
@@ -144,7 +146,7 @@ def generate_capitals_mark(df_polling_places):
 
 if __name__ == '__main__':
     #Project path
-    project_dir = str(Path(__file__).resolve().parents[4])
+    project_dir = str(Path(__file__).resolve().parents[5])
     print(project_dir)
 
     #Set data parammeters
