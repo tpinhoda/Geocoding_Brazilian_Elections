@@ -5,6 +5,7 @@ warnings.filterwarnings('ignore')
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
+from tqdm import tqdm
 
 import logging
 
@@ -16,16 +17,12 @@ def structure_data(political_office, input_filepath, output_filepath):
         structured data filtered by political office (saved in ../interim).
     """
     logger = logging.getLogger(__name__)
-    logger.info('Structuring data...')
-
     # Listing raw data
     filenames = [filename for filename in listdir(input_filepath) if isfile(join(input_filepath, filename))]
 
-
-    for filename in filenames:
+    logger.info('Structuring raw data')
+    for filename in tqdm(filenames, leave=False):
     
-        logger.info('Structuring {} raw data'.format(filename))
-
         #Loading raw data
         filepath = input_filepath + filename
         raw_data = pd.read_csv(filepath, sep=";", encoding="latin", na_values=["#NULO#", -1, -3])
@@ -65,17 +62,29 @@ if __name__ == '__main__':
     print(project_dir)
 
     #Set data parammeters
+    country = 'Brazil'
     election_year = '2018'
     political_office = 'Presidente'
     office_folder = 'president'
     turn = '2'
 
+
+
     #Set paths
-    input_filepath = project_dir + '/data/raw/Brazil/election_data/{}/turn_{}/'.format(election_year,turn)
-    output_filepath = project_dir + '/data/interim/Brazil/election_data/{}/{}/turn_{}/states/'.format(election_year,office_folder,turn)
+    input_filepath = project_dir + '/data/raw/{}/election_data/{}/turn_{}/'.format(country, election_year, turn)
+    output_filepath = project_dir + '/data/interim/{}/election_data/{}/{}/turn_{}/states/'.format(country, election_year, office_folder,turn)
 
     #Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+    #Print parameters
+    print('======Parameters========')
+    print('Country: {}'.format(country))
+    print('Election year: {}'.format(election_year))
+    print('Office: {}'.format(political_office))
+    print('Turn: {}'.format(turn))
+    
+
 
     structure_data(political_office, input_filepath, output_filepath)

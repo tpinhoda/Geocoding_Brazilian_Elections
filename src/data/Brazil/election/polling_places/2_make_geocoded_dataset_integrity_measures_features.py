@@ -51,10 +51,10 @@ def generate_city_limits_measure(df_polling_places, df_cities_maps, buffer_value
 	buffer_values.sort(reverse=True)
 
 	#Checking if coordinates are inside city frontiers for each buffer value
+	logger.info('1.3 - Checking if coordinates are in cities fronties plus a buffering frontier')
+	step = 0
 	for b in buffer_values:
-	
-		logger.info('1.3 - Buffering cities maps')
-		
+		step += 1
 		#Create a copy of the city maps to apply the buffer
 		df_buffered_cities_maps = df_cities_maps.copy()
 
@@ -62,7 +62,7 @@ def generate_city_limits_measure(df_polling_places, df_cities_maps, buffer_value
 		df_buffered_cities_maps['geometry'] = df_buffered_cities_maps['geometry'].buffer(b)
 
 		#Checking if coordinates are inside city frontiers of size equal to buffer value	
-		logger.info('1.4 - Checking if coordinates are in cities fronties of {}'.format(b))		
+		logger.info('1.3.{} Checking for buffer size {}'.format(step,b))		
 		for index, location in tqdm(df_polling_places.iterrows(), total=df_polling_places.shape[0], leave=False):
 	    	
 	    	#Get city map
@@ -81,7 +81,7 @@ def generate_city_limits_measure(df_polling_places, df_cities_maps, buffer_value
 		    if point.within(city_polygon) and city_limits != 'in':
 		    	df_polling_places.at[index,'city_limits'] = 'boundary_' + str(b)
 
-	logger.info('1.5 - Done!')	    	
+	logger.info('Done!')	    	
 	return df_polling_places
 
 
@@ -102,7 +102,7 @@ def generate_levenshtein_measure(df_polling_places):
 	tqdm.pandas(leave=False)								 
 	df_polling_places['lev_dist'] = df_polling_places.progress_apply(lambda x: Levenshtein.ratio(x['query_address'].lower(), x['fetched_address'].lower()), axis=1)
 	
-	logger.info('2.2 - Done!')
+	logger.info('Done!')
 	return df_polling_places
 
 def generate_rural_areas_mark(df_polling_places):
@@ -123,7 +123,7 @@ def generate_rural_areas_mark(df_polling_places):
 	tqdm.pandas(leave=False)
 	df_polling_places['rural'] = df_polling_places['query_address'].progress_apply(lambda x: True if any(i in x.lower() for i in searchfor) else False)
 
-	logger.info('3.2 - Done!')
+	logger.info('Done!')
 	return df_polling_places
 
 
@@ -131,18 +131,46 @@ def generate_capitals_mark(df_polling_places):
 	logger = logging.getLogger(__name__)
 	logger.info('5 - Generating capital cities marks')
 
-	cities = ['Rio Branco', 'Macapá', 'Manaus', 'Belém', 'Porto Velho','Boa Vista', 
-          'Palmas', 'Maceió', 'Salvador', 'Fortaleza', 'São Luís', 'João Pessoa', 
-          'Recife', 'Teresina', 'Natal', 'Aracaju', 'Goiânia', 'Cuiabá',
-          'Campo Grande', 'Brasília', 'Vitória', 'Belo Horizonte', 'São Paulo', 
-          'Rio de Janeiro', 'Curitiba', 'Porto Alegre', 'Florianópolis']
-
+	capitals = { 'AC': 'RIO BRANCO',
+                 'AP': 'MACAPÁ',
+                 'AM': 'MANAUS',
+                 'PA': 'Belém',
+                 'RO': 'PORTO VELHO',
+                 'RR': 'BOA VISTA',
+                 'TO': 'PALMAS',
+                 'AL': 'MACEIÓ',
+                 'BA': 'SALVADOR',
+                 'CE': 'FORTALEZA',
+                 'MA': 'SÃO LUÍS',
+                 'PB': 'JOÃO PESSOA',
+                 'PE': 'RECIFE',
+                 'PI': 'TERESINA',
+                 'RN': 'NATAL',
+                 'SE': 'ARACAJU',
+                 'GO': 'GOIÂNIA',
+                 'MT': 'CUIABÁ',
+                 'MS': 'CAMPO GRANDE',
+                 'DF': 'BRASÍLIA',
+                 'ES': 'VITÓRIA',
+                 'MG': 'BELO HORIZONTE',
+                 'SP': 'SÃO PAULO',
+                 'RJ': 'RIO DE JANEIRO',
+                 'PR': 'CURITIBA',
+                 'RS': 'PORTO ALEGRE',
+                 'SC': 'FLORINÓPOLIS'}
+	capitals_l= []
 	logger.info('5.1 - Checking polling places in capitals')
-	tqdm.pandas(leave=False)
-	df_polling_places['capital'] = df_polling_places['LOCALIDADE_LOCAL_VOTACAO'].progress_apply(lambda x: True if any(x.lower() == i.lower() for i in cities) else False)
-	
-	logger.info('5.2 - Done!')
+	for index, row in tqdm(df_polling_places.iterrows(), leave=False):
+		if row['LOCALIDADE_LOCAL_VOTACAO'] == capitals[row['SGL_UF']]:
+			capitals_l.append(True)
+		else:
+			capitals_l.append(False)
+
+	df_polling_places['capital'] = capitals_l
+	logger.info('Done!')
 	return df_polling_places
+
+
 
 if __name__ == '__main__':
     #Project path
