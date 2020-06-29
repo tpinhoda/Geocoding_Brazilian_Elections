@@ -1,0 +1,9 @@
+Detecção outliers espaciais contextuais
+
+https://faculty.ist.psu.edu/jessieli/Publications/2017-KDD-outlier.pdf
+https://dl.acm.org/doi/abs/10.1145/3269206.3271793
+https://www.researchgate.net/profile/Nivio_Ziviani/publication/325358616_A_Generalized_Active_Learning_Approach_for_Unsupervised_Anomaly_Detection/links/5b13d5e50f7e9b4981075ae1/A-Generalized-Active-Learning-Approach-for-Unsupervised-Anomaly-Detection.pdf
+https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8704723
+https://francis-press.com/uploads/papers/FtWLHA6ay2lxCoXp4qgZBaQN5l8oEOFycPV5PaFh.pdf
+https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8576150&casa_token=T2ObcRHNLtYAAAAA:4s7KpRBspvOi6XFJd7QkgADEQThCmJaRcW2Y50r6dZryJN95tvmNnqbqqREZd3SUL1zsI8F6S6Am&tag=1
+https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9101639&casa_token=TIKQw_s1-dYAAAAA:EXxw5jx--LH293xpfMGSfx402nRKj6slvcUsCJu2hXpLN2NVHNNSg5H376F7YKQybWDIkiZS3_8u
