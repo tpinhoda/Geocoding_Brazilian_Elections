@@ -1,42 +1,40 @@
 # -*- coding: utf-8 -*-
-
 # To run this script the 1_make_political_office_dataset.py should be already executed
-
+import logging
+import pandas as pd
+import geopandas as gpd
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
 from tqdm import tqdm
 from shapely.geometry import Point
 
-import logging
-import pandas as pd
-import geopandas as gpd
 
 def aggregate_data(data, aggregate_level):
-    aggr_map = {'SG_ UF':'first',
-                'NM_MUNICIPIO':'first', 
-                'CD_MUNICIPIO':'first',
-                'COD_LOCALIDADE_IBGE':'first',
-                'NR_ZONA':'first',
-                'NR_LOCAL_VOTACAO':'first',
-                'local_unico':'first',
-                'NR_SECAO':lambda x: x.values.tolist(),
-                'rural':'first',
-                'capital':'first',
-                'city_limits':'first',
-                'lev_dist':'first',
-                'QT_APTOS':'sum',
-                'QT_COMPARECIMENTO':'sum',
-                'QT_ABSTENCOES':'sum',
-                'QT_ELEITORES_BIOMETRIA_NH':'sum',
-                'Branco':'sum',
-                'Nulo':'sum',
+    aggr_map = {'SG_ UF': 'first',
+                'NM_MUNICIPIO': 'first',
+                'CD_MUNICIPIO': 'first',
+                'COD_LOCALIDADE_IBGE': 'first',
+                'NR_ZONA': 'first',
+                'NR_LOCAL_VOTACAO': 'first',
+                'local_unico': 'first',
+                'NR_SECAO': lambda x: x.values.tolist(),
+                'rural': 'first',
+                'capital': 'first',
+                'city_limits': 'first',
+                'lev_dist': 'first',
+                'QT_APTOS': 'sum',
+                'QT_COMPARECIMENTO': 'sum',
+                'QT_ABSTENCOES': 'sum',
+                'QT_ELEITORES_BIOMETRIA_NH': 'sum',
+                'Branco': 'sum',
+                'Nulo': 'sum',
                 'JAIR BOLSONARO': 'sum',
-                'FERNANDO HADDAD':'sum',
-                'lat':'first',
-                'lon':'first',
-                'geometry':'first',
-                'precision':'first'}
+                'FERNANDO HADDAD': 'sum',
+                'lat': 'first',
+                'lon': 'first',
+                'geometry': 'first',
+                'precision': 'first'}
 
     if aggregate_level == 'Polling place':
         aggr_data = data.groupby('id_polling_place')
@@ -52,13 +50,13 @@ def aggregate_data(data, aggregate_level):
         del aggr_map['lon']
         del aggr_map['geometry']
         aggr_map['precision'] = lambda x: x.values.tolist()
-        aggr_map['NR_LOCAL_VOTACAO'] =  lambda x: x.values.tolist()
+        aggr_map['NR_LOCAL_VOTACAO'] = lambda x: x.values.tolist()
         aggr_map['NR_ZONA'] = lambda x: x.values.tolist()
-
 
     data = aggr_data.agg(aggr_map)
 
-    return(data)    
+    return(data)
+
 
 def filter_data(input_filepath, digital_mesh_filepath, output_filepath, state):
     """ Runs data processing scripts to turn raw election data data from (../raw) into
@@ -71,12 +69,10 @@ def filter_data(input_filepath, digital_mesh_filepath, output_filepath, state):
     digital_mesh.dropna(inplace=True)
     data = pd.read_csv(input_filepath)
     data = data[data['SG_ UF'] == state]
-    geometry = [ Point( ( row.lon, row.lat ) ) for index, row in data.iterrows() ]
-    data = gpd.GeoDataFrame(data, geometry = geometry)
+    geometry = [Point((row.lon, row.lat)) for index, row in data.iterrows()]
+    data = gpd.GeoDataFrame(data, geometry=geometry)
     data.crs = {'init': 'epsg:4674'}
     data_joined = gpd.sjoin(left_df=data, right_df=digital_mesh, how='left', op='within')
-
-
 
 #    cod_ap = []
 #    for index, polling_place in tqdm(data.iterrows(), total=data.shape[0]):
@@ -99,37 +95,34 @@ def filter_data(input_filepath, digital_mesh_filepath, output_filepath, state):
 #            print(polling_place['geometry'])
 #            cod_ap.append(0)
     # Listing raw data
-    print('Data {} - Joined {}'.format(len(data),len(data_joined)))
+    print('Data {} - Joined {}'.format(len(data), len(data_joined)))
 #    data['Cod_ap'] = cod_ap
-    
-   
-    data_joined.to_csv(output_filepath+'polling_place_aggr.csv', index=False)
-    data_joined = aggregate_data(data_joined,'Cod_ap')
-    data_joined.to_csv(output_filepath+'weighting_area_aggr.csv')
+
+    data_joined.to_csv(output_filepath + 'polling_place_aggr.csv', index=False)
+    data_joined = aggregate_data(data_joined, 'Cod_ap')
+    data_joined.to_csv(output_filepath + 'weighting_area_aggr.csv')
     logger.info('Done!')
 
-    
 
 if __name__ == '__main__':
-    #Project path
+    # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     print(project_dir)
 
-    #Set data parammeters
+    # Set data parammeters
     country = 'Brazil'
     election_year = '2018'
     political_office = 'president'
     turn = '2'
     state = 'RS'
-    census_year = '2010' 
-    IS = '0.99946'     
-    #Set paths
+    census_year = '2010'
+    IS = '0.99946'
+    # Set paths
     input_filepath = project_dir + '/data/processed/{}/election_data/{}/{}/turn_{}/filtered/by_state/{}/IS_{}/data.csv'.format(country, election_year,political_office,turn,state,IS)
     digital_mesh_filepath = project_dir + '/data/interim/{}/census_data/{}/weightening_area/digital_mesh/{}.json'.format(country, census_year, state)
-   
     output_filepath = project_dir + '/data/processed/{}/election_data/{}/{}/turn_{}/matched_census/by_state/{}/IS_{}/data/'.format(country, election_year,political_office,turn,state,IS)
 
-    #Print parameters
+    # Print parameters
     print('======Parameters========')
     print('Country: {}'.format(country))
     print('Election year: {}'.format(election_year))
@@ -137,7 +130,7 @@ if __name__ == '__main__':
     print('Turn: {}'.format(turn))
     print('State: {}'.format(state))
 
-    #Log text to show on screen
+    # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
