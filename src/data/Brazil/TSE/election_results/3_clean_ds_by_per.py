@@ -22,7 +22,7 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     data = aggregate_data(data, aggr_level, candidates_list)
     # Get the total turnout
     turnout = sum(data['QT_COMPARECIMENTO'])
-    #Clean data
+    # Clean data
     logger.info('Cleaning data')
     # Input Levenshtein similarity from TSE locations (1 = Highest Value)
     data.loc[data.precision == 'TSE', 'lev_dist'] = 1
@@ -46,7 +46,6 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     # Save final dataset
     logger.info('Saving data in:\n{}'.format(output_path + '/data.csv'))
     data.to_csv(output_path + '/data.csv', index=False)
-    return per_dec, data
     logger.info('Done!')
 
 
@@ -148,7 +147,3 @@ if __name__ == '__main__':
                aggregate_level,
                candidates)
 
-#data[data['precision'].isnull()].to_csv(
-#    output_filepath + 'IS_{}'.format(round(integrity_score, 5)) + '/missing_places.csv')
-
-#print('integrity score: {}'.format(round(integrity_score, 5)))
