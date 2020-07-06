@@ -1,57 +1,10 @@
-# -*- coding: utf-8 -*-
-import warnings
-import logging
 import folium
 import branca.colormap as cm
 import geopandas as geopd
-import pandas as pd
-from pathlib import Path
-from os import mkdir
 from folium.plugins import FastMarkerCluster
-
-warnings.filterwarnings('ignore')
-
-
-def aggregate_data(data, aggregate_level):
-    if aggregate_level == 'Polling place':
-        aggr_data = data.groupby('id_polling_place')
-    elif aggregate_level == 'Section':
-        aggr_data = data.groupby('id_section')
-    elif aggregate_level == 'Zone':
-        aggr_data = data.groupby('id_zone')
-    elif aggregate_level == 'City':
-        aggr_data = data.groupby('id_city')
-
-    data = aggr_data.agg({'SG_ UF': 'first',
-                          'NM_MUNICIPIO': 'first',
-                          'CD_MUNICIPIO': 'first',
-                          'COD_LOCALIDADE_IBGE': 'first',
-                          'NR_ZONA': 'first',
-                          'NR_LOCAL_VOTACAO': 'first',
-                          'local_unico': 'first',
-                          'NR_SECAO': lambda x: x.values.tolist(),
-                          'rural': 'first',
-                          'capital': 'first',
-                          'city_limits': 'first',
-                          'lev_dist': 'first',
-                          'QT_APTOS': 'sum',
-                          'QT_COMPARECIMENTO': 'sum',
-                          'QT_ABSTENCOES': 'sum',
-                          'QT_ELEITORES_BIOMETRIA_NH': 'sum',
-                          'Branco': 'sum',
-                          'Nulo': 'sum',
-                          'JAIR BOLSONARO': 'sum',
-                          'FERNANDO HADDAD': 'sum',
-                          'lat': 'first',
-                          'lon': 'first',
-                          'geometry': 'first',
-                          'precision': 'first'})
-
-    return(data)
 
 
 def calculate_integrity(data):
-
     tse_score = sum(data['precision'] == 'TSE') * 1
     rooftop_score = sum(data['precision'] == 'ROOFTOP') * 0.8
     ri_score = sum(data['precision'] == 'RANGE_INTERPOLATED') * 0.6
@@ -78,34 +31,6 @@ def calculate_integrity(data):
 
     return final_score
 
-
-def filter_data(data, output_filepath, city_limits, levenstein_threshold, precision_categories, aggregate_level):
-    """ Runs data processing scripts to generate filtered data from(../prorcessed).
-    """
-    logger = logging.getLogger(__name__)
-    #
-    logger.info('Aggregating data by {}'.format(aggregate_level))
-
-    data.loc[data.precision == 'TSE', 'lev_dist'] = 1
-    data = data[data['lev_dist'] >= levenstein_threshold]
-
-    data = data[data['precision'].isin(precision_categories)]
-    data = data[data['city_limits'].isin(city_limits)]
-
-    integrity_score = calculate_integrity(data)
-
-    output_filepath = output_filepath + 'IS_' + str(round(integrity_score, 5))
-    try:
-        mkdir(output_filepath)
-    except:
-        print('Folder already exist!')
-
-    data.to_csv(output_filepath + '/data.csv', index=False)
-
-    return integrity_score, data
-    logger.info('Done!')
-
-
 def generate_markdown_report(data,
                              filtered_data,
                              output_filepath,
@@ -114,7 +39,6 @@ def generate_markdown_report(data,
                              levenstein_threshold,
                              precision_categories,
                              aggregate_level):
-
     parameters_report = {'Aggregate level': aggregate_level,
                          'City limits:': [city_limits],
                          'Precision categories': [precision_categories],
@@ -208,8 +132,8 @@ def generate_markdown_report(data,
     report_df = pd.DataFrame(votes_report, index=[0])
     votes_markdown = "\n ## Votes \n" + report_df.to_markdown(showindex=False)
 
-
-    final_report = '# Dataset: IS_{} \n'.format(round(integrity_score,5)) + parammeters_markdown + '\n' + statistics_markdown + '\n' + precisions_markdown + '\n' +votes_markdown
+    final_report = '# Dataset: IS_{} \n'.format(round(integrity_score,
+                                                      5)) + parammeters_markdown + '\n' + statistics_markdown + '\n' + precisions_markdown + '\n' + votes_markdown
 
     print(final_report, file=open(output_filepath + 'IS_' + str(round(integrity_score, 5)) + '/summary.md', 'w'))
 
@@ -218,8 +142,8 @@ def generateBaseMap(default_location=[-22.010147, -47.890706], default_zoom_star
     base_map = folium.Map(location=default_location, zoom_start=default_zoom_start)
     return base_map
 
-def generate_plot(clusters_map, data, output_filepath, integrity_score):
 
+def generate_plot(clusters_map, data, output_filepath, integrity_score):
     callback = ('function (row) {'
                 'var circle = L.circle(new L.LatLng(row[0], row[1]));'
                 'return circle};')
@@ -271,7 +195,9 @@ def generate_plot_2(data, filtered_data, path_geojson, digital_mesh, output_file
     folium.GeoJson(data=city_data,
                    name='Br Cities',
                    tooltip=folium.GeoJsonTooltip(fields=['NM_MUNICIP', 'pl_perc'],
-                                                 aliases=['<div style="background-color: lightyellow; color: black; padding: 3px; border: 2px solid black; border-radius: 3px;">'+item+'</div>' for item in ['City','Percentual']],
+                                                 aliases=[
+                                                     '<div style="background-color: lightyellow; color: black; padding: 3px; border: 2px solid black; border-radius: 3px;">' + item + '</div>'
+                                                     for item in ['City', 'Percentual']],
                                                  labels=True,
                                                  sticky=True),
                    style_function=lambda city: {'fillColor': step(city['properties']['pl_perc']),
@@ -287,68 +213,3 @@ def generate_plot_2(data, filtered_data, path_geojson, digital_mesh, output_file
     # folium.LayerControl().add_to(m)
     # Save to html
     return m
-
-
-if __name__ == '__main__':
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
-    print(project_dir)
-
-    # Set data parammeters
-    country = 'Brazil'
-    election_year = '2018'
-    political_office = 'Presidente'
-    office_folder = 'president'
-    turn = '2'
-
-    # Set data filters
-    city_limits = ['in', 'boundary_0.01', 'boundary_0.02', 'boundary_0.03']
-    levenstein_threshold = .0
-    precision_categories = ['TSE', 'ROOFTOP']
-    aggregate_level = 'Polling place'
-
-    # Set paths
-    path_geojson = project_dir + '/data/raw/Brazil/IBGE/census_data/2010/city/digital_mesh/cities.json'
-    input_filepath = project_dir + '/data/processed/{}/TSE/election_data/{}/{}/turn_{}/data.csv'.format(country, election_year, office_folder,turn)
-    output_filepath = project_dir + '/data/processed/{}/TSE/election_data/{}/{}/turn_{}/filtered/'.format(country, election_year, office_folder,turn)
-
-    # Log text to show on screen
-    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # Print parameters
-    print('======Parameters========')
-    print('Country: {}'.format(country))
-    print('Election year: {}'.format(election_year))
-    print('Office: {}'.format(political_office))
-    print('Turn: {}'.format(turn))
-
-    # Print parameters
-    print('======Filtering parameters========')
-    print('City Limits: {}'.format(city_limits))
-    print('Levenstein threshold: {}'.format(levenstein_threshold))
-    print('Geocoding precisions: {}'.format(precision_categories))
-    print('Aggregate Level: {}'.format(aggregate_level))
-
-    data = pd.read_csv(input_filepath)
-    digital_mesh = geopd.read_file(path_geojson, encoding="utf8")
-
-    # In case of fitering by state
-    # ===========================
-    # state = 'RS'
-    # data = data[data['SG_ UF'] == state]
-    # output_filepath =  project_dir + '/data/processed/{}/election_data/{}/{}/turn_{}/filtered/by_state/{}/'.format(country, election_year, office_folder,turn,state)
-    #============================
-
-    data = aggregate_data(data, aggregate_level)
-
-
-    integrity_score, data_filtered = filter_data(data, output_filepath, city_limits, levenstein_threshold, precision_categories, aggregate_level)
-    data[data['precision'].isnull()].to_csv(output_filepath + 'IS_{}'.format(round(integrity_score, 5)) + '/missing_places.csv')
-
-    print('integrity score: {}'.format(round(integrity_score, 5)))
-
-    generate_markdown_report(data, data_filtered, output_filepath, integrity_score, city_limits, levenstein_threshold, precision_categories, aggregate_level)
-
-    m = generate_plot_2(data, data_filtered, path_geojson, digital_mesh, output_filepath, integrity_score)
-    generate_plot(m, data_filtered, output_filepath, integrity_score)

@@ -16,27 +16,27 @@ def structure_data(office, input_path, output_path):
         structured data filtered by political office (saved in ../interim).
     """
     logger = logging.getLogger(__name__)
-    # Listing raw data
+    # List raw data
     filenames = [filename for filename in listdir(input_path) if isfile(join(input_path, filename))]
     # Structure each file in filenames
-    logger.info('Structuring raw data')
+    logger.info('Structuring data from:\n' + input_path)
     for filename in tqdm(filenames, leave=False):
-        # Loading raw data
+        # Load raw data
         filepath = input_path + filename
         raw_data = pd.read_csv(filepath, sep=";", encoding="latin", na_values=["#NULO#", -1, -3])
-        # Filtering raw data by political office
+        # Filter raw data by political office
         filtered_raw_data = raw_data[(raw_data.DS_CARGO_PERGUNTA == office)]
-        # Getting the votes per candidates/parties
+        # Get the votes per candidates/parties
         votes = filtered_raw_data.copy().set_index(["NM_MUNICIPIO",
                                                     "NR_ZONA",
                                                     "NR_SECAO",
                                                     "NR_LOCAL_VOTACAO",
                                                     "NM_VOTAVEL"]).unstack(fill_value=0).QT_VOTOS
-        # Removing duplicate rows in zones and sections
+        # Remove duplicate rows in zones and sections
         filtered_raw_data.drop_duplicates(subset=["NM_MUNICIPIO", "NR_ZONA", "NR_SECAO"], inplace=True)
-        # Indexing filtered raw data
+        # Index filtered raw data
         filtered_raw_data.set_index(["NM_MUNICIPIO", "NR_ZONA", "NR_SECAO", "NR_LOCAL_VOTACAO"], inplace=True)
-        # Joining votes and filtered dataframes
+        # Join votes and filtered dataframes
         structured_data = filtered_raw_data.join(votes)
         # Drop unnecessary columns
         unnecessary_cols = ['NR_PARTIDO',
@@ -52,6 +52,7 @@ def structure_data(office, input_path, output_path):
         structured_data.reset_index(inplace=True)
         # Save the data as csv
         structured_data.to_csv(output_path + filename, index=False)
+    logger.info('Data saved in:\n' + output_path)
     logger.info('Done!')
 
 
@@ -74,8 +75,7 @@ if __name__ == '__main__':
     interim_path = path.format(year, 'interim')
     # Set paths
     input_filepath = raw_path + '/turn_{}/'.format(turn)
-    output_filepath = interim_path + '/{}/turn_{}/'.format(office_folder,
-                                                           turn)
+    output_filepath = interim_path + '/{}/turn_{}/'.format(office_folder, turn)
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)

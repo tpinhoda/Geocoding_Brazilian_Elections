@@ -2,7 +2,7 @@
 import warnings
 import pandas as pd
 import logging
-from os import listdir, environ
+from os import listdir, environ, remove
 from os.path import isfile, join
 from pathlib import Path
 from tqdm import tqdm
@@ -11,38 +11,40 @@ from dotenv import load_dotenv, find_dotenv
 warnings.filterwarnings('ignore')
 
 
-def merge_data(election_results, polling_places, states_output_filepath, final_dataset_output_filepath):
+def merge_data(election_results, polling_places, output_filepath):
     """ Runs scripts to turn merge interim election data data from (../interim/election_results) with
         polling places processed data from (../processed/polling_places).
 
         The results of this script is saved in ../interim/election_results
     """
     logger = logging.getLogger(__name__)
-    logger.info('1 - Merging data')
-    # Loading data with geocode information from polling places
+    logger.info('1 - Merging data from:\n' + election_results + '\n' + polling_places)
+    # Load data with geocode information from polling places
     polling_places = pd.read_csv(polling_places)
-    # Generating an id to facilitate merging
+    # Generate an id to facilitate merging
     polling_places['id_polling_place'] = polling_places['SGL_UF'] + polling_places['LOCALIDADE_LOCAL_VOTACAO'] + \
                                          polling_places['ZONA'].astype(str) + polling_places['NUM_LOCAL'].astype(str)
 
-    # Listing raw data
+    # List interim data
     filenames = [filename for filename in listdir(election_results) if isfile(join(election_results, filename))]
     list_state_df = []
-    # For each state...
+    # Merge each file in filenames
     for filename in tqdm(filenames):
-        # Loading raw data
+        # Load interim data
         filepath = election_results + filename
         results = pd.read_csv(filepath)
-        # Converting columns to string type
+        # Delete interim file
+        remove(filepath)
+        # Convert columns to string type
         results['NR_ZONA'] = results['NR_ZONA'].astype(str)
         results['NR_LOCAL_VOTACAO'] = results['NR_LOCAL_VOTACAO'].astype(str)
         results['NR_SECAO'] = results['NR_SECAO'].astype(str)
-        # Generating an ids to facilitate merging
+        # Generate an ids to facilitate merging
         id_pl = results['SG_ UF'] + results['NM_MUNICIPIO'] + results['NR_ZONA'] + results['NR_LOCAL_VOTACAO']
         id_sec = results['SG_ UF'] + results['NM_MUNICIPIO'] + results['NR_ZONA'] + results['NR_SECAO']
         id_zone = results['SG_ UF'] + results['NM_MUNICIPIO'] + results['NR_ZONA']
         id_city = results['SG_ UF'] + results['NM_MUNICIPIO']
-        # Imputing columns ids
+        # Input columns ids
         results['id_polling_place'] = id_pl
         results['id_section'] = id_sec
         results['id_zone'] = id_zone
@@ -52,16 +54,17 @@ def merge_data(election_results, polling_places, states_output_filepath, final_d
                                    ['id_polling_place', 'COD_LOCALIDADE_IBGE', 'local_unico', 'lat', 'lon', 'geometry',
                                     'rural', 'capital', 'precision', 'lev_dist', 'city_limits']],
                                on='id_polling_place', how='left')
-        # Save the data as csv
-        merged.to_csv(states_output_filepath + filename, index=False)
+        # Save the data as csv (Does not make sense have redundant data)
+        # merged.to_csv(states_output_filepath + filename, index=False)
 
         # Append to list
         list_state_df.append(merged)
 
-    # Saving final dataset
-    logger.info('2 - Saving final dataset...')
+    # Save final dataset
+    output_filepath = output_filepath + 'data.csv'
+    logger.info('2 - Saving final dataset in:\n' + output_filepath)
     final_df = pd.concat(list_state_df)
-    final_df.to_csv(final_dataset_output_filepath + '/Brazil.csv', index=False)
+    final_df.to_csv(output_filepath, index=False)
 
     logger.info('Done!')
 
@@ -84,8 +87,7 @@ if __name__ == '__main__':
     election_results_interim_path = election_results_path.format(year, 'interim')
     polling_places_processed_path = polling_places_path.format(year, 'processed')
     # Set paths
-    election_results_path = election_results_interim_path + '/{}/turn_{}/'.format(office_folder,
-                                                                                  turn)
+    election_results_path = election_results_interim_path + '/{}/turn_{}/'.format(office_folder, turn)
     polling_places_path = polling_places_processed_path + '/polling_places.csv'
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -96,4 +98,4 @@ if __name__ == '__main__':
     print('Office: {}'.format(office_folder))
     print('Turn: {}'.format(turn))
 
-    merge_data(election_results_path, polling_places_path, election_results_path, election_results_path)
+    merge_data(election_results_path, polling_places_path, election_results_path)
