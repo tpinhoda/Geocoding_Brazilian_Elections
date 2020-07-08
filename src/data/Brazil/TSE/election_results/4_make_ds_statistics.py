@@ -135,7 +135,8 @@ def generate_summary_report(original_data,
     return summary_markdown
 
 
-if __name__ == '__main__':
+def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
+        aggregate_level, per):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -144,17 +145,6 @@ if __name__ == '__main__':
     load_dotenv(dotenv_path)
     # Get election results path
     path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
-    # Set parameters
-    year = '2018'
-    office_folder = 'president'
-    turn = '2'
-    per = '97.17885'
-    candidates = ['JAIR BOLSONARO', 'FERNANDO HADDAD']
-    # Set data filters
-    city_limits = ['in', 'boundary_0.01', 'boundary_0.02', 'boundary_0.03']
-    levenshtein_threshold = .0
-    precision_categories = ['TSE', 'ROOFTOP', 'GEOMETRIC_CENTER', 'RANGE_INTERPOLATED', 'APPROXIMATE']
-    aggregate_level = 'Polling place'
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')

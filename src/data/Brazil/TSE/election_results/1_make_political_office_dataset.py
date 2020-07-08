@@ -56,7 +56,7 @@ def structure_data(office, input_path, output_path):
     logger.info('Done!')
 
 
-if __name__ == '__main__':
+def run(year, political_office, office_folder, turn):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -65,11 +65,6 @@ if __name__ == '__main__':
     load_dotenv(dotenv_path)
     # Get election results path
     path = project_dir + environ.get("BRAZIL_ELECTION_RESULTS")
-    # Set data parameters
-    year = '2018'
-    political_office = 'Presidente'
-    office_folder = 'president'
-    turn = '2'
     # Generate input output paths
     raw_path = path.format(year, 'raw')
     interim_path = path.format(year, 'interim')

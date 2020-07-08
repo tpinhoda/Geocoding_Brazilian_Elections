@@ -47,6 +47,7 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     logger.info('Saving data in:\n{}'.format(output_path + '/data.csv'))
     data.to_csv(output_path + '/data.csv', index=False)
     logger.info('Done!')
+    return round(per, per_dec)
 
 
 def aggregate_data(data, aggr_level, candidates):
@@ -97,7 +98,8 @@ def calculate_per(t, ct):
     return 100 * ct / t
 
 
-if __name__ == '__main__':
+def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
+        aggregate_level):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -106,16 +108,6 @@ if __name__ == '__main__':
     load_dotenv(dotenv_path)
     # Get election results path
     path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
-    # Set data parameters
-    year = '2018'
-    office_folder = 'president'
-    turn = '2'
-    candidates = ['JAIR BOLSONARO', 'FERNANDO HADDAD']
-    # Set data filters
-    city_limits = ['in', 'boundary_0.01', 'boundary_0.02', 'boundary_0.03']
-    levenshtein_threshold = .0
-    precision_categories = ['TSE', 'ROOFTOP', 'GEOMETRIC_CENTER', 'RANGE_INTERPOLATED', 'APPROXIMATE']
-    aggregate_level = 'Polling place'
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
@@ -139,11 +131,10 @@ if __name__ == '__main__':
     print('Geocoding precisions: {}'.format(precision_categories))
     print('Aggregate Level: {}'.format(aggregate_level))
 
-    clean_data(input_filepath,
-               output_filepath,
-               city_limits,
-               levenshtein_threshold,
-               precision_categories,
-               aggregate_level,
-               candidates)
-
+    return clean_data(input_filepath,
+                      output_filepath,
+                      city_limits,
+                      levenshtein_threshold,
+                      precision_categories,
+                      aggregate_level,
+                      candidates)

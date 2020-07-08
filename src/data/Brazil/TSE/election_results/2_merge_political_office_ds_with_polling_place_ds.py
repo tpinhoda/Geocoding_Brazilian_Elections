@@ -69,7 +69,7 @@ def merge_data(election_results, polling_places, output_filepath):
     logger.info('Done!')
 
 
-if __name__ == '__main__':
+def run(year, office_folder, turn):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -79,10 +79,6 @@ if __name__ == '__main__':
     # Get election results path
     election_results_path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
     polling_places_path = project_dir + environ.get('BRAZIL_POLLING_PLACES')
-    # Set data parameters
-    year = '2018'
-    office_folder = 'president'
-    turn = '2'
     # Generate input output paths
     election_results_interim_path = election_results_path.format(year, 'interim')
     polling_places_processed_path = polling_places_path.format(year, 'processed')
