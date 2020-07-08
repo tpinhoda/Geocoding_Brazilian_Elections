@@ -7,6 +7,7 @@ from os.path import isfile, join
 from pathlib import Path
 from tqdm import tqdm
 from dotenv import load_dotenv, find_dotenv
+from pandas_profiling import ProfileReport
 
 warnings.filterwarnings('ignore')
 
@@ -65,8 +66,13 @@ def merge_data(election_results, polling_places, output_filepath):
     logger.info('2 - Saving final dataset in:\n' + output_filepath)
     final_df = pd.concat(list_state_df)
     final_df.to_csv(output_filepath, index=False)
-
     logger.info('Done!')
+    return  final_df
+
+
+def generate_data_statistics(data, output_path):
+    prof = ProfileReport(data)
+    prof.to_file(output_file=output_path+'/summary.html')
 
 
 def run(year, office_folder, turn):
@@ -89,9 +95,10 @@ def run(year, office_folder, turn):
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     # Print parameters
-    print('======Parameters========')
-    print('Election year: {}'.format(year))
-    print('Office: {}'.format(office_folder))
-    print('Turn: {}'.format(turn))
+    # print('======Parameters========')
+    # print('Election year: {}'.format(year))
+    # print('Office: {}'.format(office_folder))
+    # print('Turn: {}'.format(turn))
 
-    merge_data(election_results_path, polling_places_path, election_results_path)
+    data = merge_data(election_results_path, polling_places_path, election_results_path)
+    generate_data_statistics(data, election_results_path)

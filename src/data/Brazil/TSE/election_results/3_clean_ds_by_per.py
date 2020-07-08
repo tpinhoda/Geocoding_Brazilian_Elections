@@ -19,7 +19,7 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     data = pd.read_csv(data_path)
     # Aggregates interim data by aggr_level
     logger.info('Aggregating data by {}'.format(aggr_level))
-    data = aggregate_data(data, aggr_level, candidates_list)
+    output_path, data = aggregate_data(data, aggr_level, candidates_list, output_path)
     # Get the total turnout
     turnout = sum(data['QT_COMPARECIMENTO'])
     # Clean data
@@ -38,19 +38,16 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     per = calculate_per(turnout, cl_turnout)
     logger.info('Percentage of electorate representation: {}'.format(round(per, per_dec)))
     # Creates folder by percentage of electorate representation (PER)
-    output_path = output_path + 'PER_' + str(round(per, per_dec))
-    try:
-        mkdir(output_path)
-    except FileExistsError:
-        logger.info('Folder already exist!')
+    folder = 'PER_' + str(round(per, per_dec))
+    output_path = create_folder(output_path, folder)
     # Save final dataset
-    logger.info('Saving data in:\n{}'.format(output_path + '/data.csv'))
-    data.to_csv(output_path + '/data.csv', index=False)
+    logger.info('Saving data in:\n{}'.format(output_path + 'data.csv'))
+    data.to_csv(output_path + 'data.csv', index=False)
     logger.info('Done!')
     return round(per, per_dec)
 
 
-def aggregate_data(data, aggr_level, candidates):
+def aggregate_data(data, aggr_level, candidates, output_path):
     # Aggregates the data by the aggregation level
     if aggr_level == 'Polling place':
         aggr_data = data.groupby('id_polling_place')
@@ -90,12 +87,25 @@ def aggregate_data(data, aggr_level, candidates):
         aggr_map[c] = 'sum'
     # Aggregates the data given the map dictionary
     data = aggr_data.agg(aggr_map)
+    # Creates folder with aggregate level name
+    folder = 'aggr_by_'+aggr_level.lower().replace(' ', '_')
+    output_path = create_folder(output_path, folder)
 
-    return data
+    return output_path, data
 
 
 def calculate_per(t, ct):
     return 100 * ct / t
+
+
+def create_folder(path, folder_name):
+    logger = logging.getLogger(__name__)
+    path = path + folder_name
+    try:
+        mkdir(path)
+    except FileExistsError:
+        logger.info('Folder already exist.')
+    return path + '/'
 
 
 def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,

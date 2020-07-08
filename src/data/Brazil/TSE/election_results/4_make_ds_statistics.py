@@ -5,6 +5,7 @@ import pandas as pd
 from pathlib import Path
 from os import environ
 from dotenv import load_dotenv, find_dotenv
+from pandas_profiling import ProfileReport
 
 warnings.filterwarnings('ignore')
 
@@ -135,6 +136,11 @@ def generate_summary_report(original_data,
     return summary_markdown
 
 
+def generate_data_statistics(data, output_path):
+    prof = ProfileReport(data)
+    prof.to_file(output_file=output_path)
+
+
 def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
         aggregate_level, per):
     # Project path
@@ -149,17 +155,18 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
     # Set path
-    processed_data = processed_path + '/{}/turn_{}/PER_{}/'.format(office_folder, turn, per)
+    aggr_folder = 'aggr_by_' + aggregate_level.lower().replace(' ', '_')
+    processed_data = processed_path + '/{}/turn_{}/{}/PER_{}/'.format(office_folder, turn, aggr_folder, per)
     interim_data = interim_path + '/{}/turn_{}/'.format(office_folder, turn)
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     # Print parameters
-    print('======Global parameters========')
-    print('Election year: {}'.format(year))
-    print('Office: {}'.format(office_folder))
-    print('Turn: {}'.format(turn))
-    print('PER: {}'.format(per))
+    # print('======Global parameters========')
+    # print('Election year: {}'.format(year))
+    # print('Office: {}'.format(office_folder))
+    # print('Turn: {}'.format(turn))
+    # print('PER: {}'.format(per))
     # Load original and cleaned data
     original_df = pd.read_csv(interim_data + 'data.csv')
     cleaned_df = pd.read_csv(processed_data + 'data.csv')
@@ -176,3 +183,8 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
         per) + parameters_report + '\n' + summary_report + '\n' + precisions_report + '\n' + votes_report
 
     print(final_report, file=open(processed_data + 'summary.md', 'w'))
+    for c in candidates:
+        cleaned_df[c] = cleaned_df[c].astype('int64')
+
+
+    generate_data_statistics(cleaned_df, processed_data+'profiling.html')
