@@ -52,7 +52,7 @@ if __name__ == '__main__':
                                                                           'city_limits': literal_eval,
                                                                           'precision_categories': literal_eval})
     # Set executions
-    make_interim = True
+    make_interim = False
     make_processed = True
 
     if make_interim:
