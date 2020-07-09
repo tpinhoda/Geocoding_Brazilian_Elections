@@ -24,14 +24,15 @@ def clean_data(data_path, output_path, city_lim, l_threshold, precisions, aggr_l
     turnout = sum(data['QT_COMPARECIMENTO'])
     # Clean data
     logger.info('Cleaning data')
-    # Input Levenshtein similarity from TSE locations (1 = Highest Value)
-    data.loc[data.precision == 'TSE', 'lev_dist'] = 1
-    # Get locations with levenshtein similarity greater than a threshold
-    data = data[data['lev_dist'] >= l_threshold]
-    # Get locations with the precisions specified
-    data = data[data['precision'].isin(precisions)]
-    # Get locations with the limits specified
-    data = data[data['city_limits'].isin(city_lim)]
+    if aggr_level != 'City':
+        # Input Levenshtein similarity from TSE locations (1 = Highest Value)
+        data.loc[data.precision == 'TSE', 'lev_dist'] = 1
+        # Get locations with levenshtein similarity greater than a threshold
+        data = data[data['lev_dist'] >= l_threshold]
+        # Get locations with the precisions specified
+        data = data[data['precision'].isin(precisions)]
+        # Get locations with the limits specified
+        data = data[data['city_limits'].isin(city_lim)]
     # Get the data cleaned turnout
     cl_turnout = sum(data['QT_COMPARECIMENTO'])
     # Calculate the percentage of electorate representation (PER)
@@ -82,13 +83,19 @@ def aggregate_data(data, aggr_level, candidates, output_path):
                 'geometry': 'first',
                 'precision': 'first'}
 
+    # Change map function if city, zone or state
+    cols = ['NR_LOCAL_VOTACAO', 'local_unico', 'rural', 'capital', 'city_limits', 'lat', 'lon', 'geometry', 'precision']
+    if aggr_level == 'City' or aggr_level == 'Zona' or aggr_level == 'State':
+        for col in cols:
+            aggr_map[col] = lambda x: x.values.tolist()
+
     # Insert the candidates names and aggregation function
     for c in candidates:
         aggr_map[c] = 'sum'
     # Aggregates the data given the map dictionary
     data = aggr_data.agg(aggr_map)
     # Creates folder with aggregate level name
-    folder = 'aggr_by_'+aggr_level.lower().replace(' ', '_')
+    folder = 'aggr_by_' + aggr_level.lower().replace(' ', '_')
     output_path = create_folder(output_path, folder)
 
     return output_path, data
