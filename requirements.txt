@@ -169,3 +169,13 @@ zeromq=4.3.2=h6538335_2
 zipp=3.1.0=py_0
 zlib=1.2.11=h62dcd97_4
 zstd=1.4.4=ha9fde0e_3
+
+pandas~=1.0.5
+geopandas~=0.6.1
+shapely~=1.6.4
+tqdm~=4.47.0
+folium~=0.11.0
+branca~=0.4.1
+python-dotenv~=0.14.0
+numpy~=1.18.5
+setuptools~=47.3.1

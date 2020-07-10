@@ -186,5 +186,4 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
     for c in candidates:
         cleaned_df[c] = cleaned_df[c].astype('int64')
 
-
     generate_data_statistics(cleaned_df, processed_data+'profiling.html')
