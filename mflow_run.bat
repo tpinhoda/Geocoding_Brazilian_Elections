@@ -1,0 +1,1 @@
+mlflow ui --backend-store-uri file:C:\Users\Tiago\Documents\GitHub\Election_Forensics/experiments/Brazil --default-artifact-root file:C:\Users\Tiago\Documents\GitHub\Election_Forensics/experiments/Brazil --host 0.0.0.0 --port 5000

@@ -31,6 +31,7 @@ def merge_data(election_results, polling_places, output_filepath):
     list_state_df = []
     # Merge each file in filenames
     for filename in tqdm(filenames):
+        print(filename)
         # Load interim data
         filepath = election_results + filename
         results = pd.read_csv(filepath)

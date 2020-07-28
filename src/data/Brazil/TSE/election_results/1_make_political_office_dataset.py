@@ -23,9 +23,12 @@ def structure_data(office, input_path, output_path):
     for filename in tqdm(filenames, leave=False):
         # Load raw data
         filepath = input_path + filename
-        raw_data = pd.read_csv(filepath, sep=";", encoding="latin", na_values=["#NULO#", -1, -3])
+        raw_data = pd.read_csv(filepath, sep=";", encoding="latin1", na_values=["#NULO#", -1, -3])
+        raw_data.DS_CARGO_PERGUNTA = raw_data.DS_CARGO_PERGUNTA.str.upper()
+        raw_data.NM_VOTAVEL = raw_data.NM_VOTAVEL.str.upper()
+        raw_data['NM_VOTAVEL'] = raw_data['NM_VOTAVEL'].str.replace('[^A-Za-z\s]+', '')
         # Filter raw data by political office
-        filtered_raw_data = raw_data[(raw_data.DS_CARGO_PERGUNTA == office)]
+        filtered_raw_data = raw_data[(raw_data.DS_CARGO_PERGUNTA == office.upper())]
         # Get the votes per candidates/parties
         votes = filtered_raw_data.copy().set_index(["NM_MUNICIPIO",
                                                     "NR_ZONA",
@@ -41,9 +44,9 @@ def structure_data(office, input_path, output_path):
         # Drop unnecessary columns
         unnecessary_cols = ['NR_PARTIDO',
                             'SG_PARTIDO',
-                            'NM_PARTIDO',
+                            #'NM_PARTIDO',
                             'CD_TIPO_VOTAVEL',
-                            'DS_TIPO_VOTAVEL',
+                            #'DS_TIPO_VOTAVEL',
                             'NR_VOTAVEL',
                             'NM_VOTAVEL',
                             'QT_VOTOS']

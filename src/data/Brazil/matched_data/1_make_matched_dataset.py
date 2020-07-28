@@ -3,11 +3,9 @@
 import logging
 import pandas as pd
 import geopandas as gpd
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
-from tqdm import tqdm
 from shapely.geometry import Point
+
 
 
 def aggregate_data(data, aggregate_level):

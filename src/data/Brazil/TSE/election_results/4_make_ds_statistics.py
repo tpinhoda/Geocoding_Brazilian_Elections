@@ -101,8 +101,8 @@ def generate_precisions_report(cleaned_data):
 
 
 def generate_votes_report(original_data, cleaned_data, candidates):
-    null = n_attribute(original_data, cleaned_data, 'Nulo')
-    blank = n_attribute(original_data, cleaned_data, 'Branco')
+    null = n_attribute(original_data, cleaned_data, 'NULO')
+    blank = n_attribute(original_data, cleaned_data, 'BRANCO')
     votes_report = {'Null': null['represented'],
                     'Branco': blank['represented']}
     for c in candidates:
@@ -187,3 +187,5 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
         cleaned_df[c] = cleaned_df[c].astype('int64')
 
     generate_data_statistics(cleaned_df, processed_data+'profiling.html')
+    is_score = calculate_integrity(cleaned_df)
+    return is_score

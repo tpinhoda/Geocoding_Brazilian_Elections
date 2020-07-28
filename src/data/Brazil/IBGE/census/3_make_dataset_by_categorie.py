@@ -51,7 +51,7 @@ def join_data(input_filepath, categories_filepath, output_filepath):
 
 if __name__ == '__main__':
     # Project path
-    project_dir = str(Path(__file__).resolve().parents[4])
+    project_dir = str(Path(__file__).resolve().parents[5])
     print(project_dir)
 
     # Set data parammeters
@@ -59,9 +59,9 @@ if __name__ == '__main__':
     census_year = '2010'
     state = 'RS'
     # Set paths
-    input_filepath = project_dir + '/data/interim/{}/census_data/{}/weightening_area/universal_results/states/{}/'.format(country, census_year, state)
-    output_filepath = project_dir + '/data/processed/{}/census_data/{}/weightening_area/universal_results/states/{}/'.format(country, census_year,state)
-    categories_filepath = project_dir + '/data/raw/{}/census_data/{}/categories.json'.format(country,census_year)
+    input_filepath = project_dir + '/data/ronaldo/data/IBGE/census_2010/RS/aggregated_by_weighting_area/not_joined/'
+    output_filepath = project_dir + '/data/ronaldo/data/IBGE/census_2010/RS/aggregated_by_weighting_area/joined/'
+    categories_filepath = project_dir + '/data/ronaldo/data/IBGE/census_2010/categories.json'
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
