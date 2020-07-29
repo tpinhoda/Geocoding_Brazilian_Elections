@@ -2,6 +2,7 @@ import folium
 import branca.colormap as cm
 from folium.plugins import FastMarkerCluster
 
+
 def generate_base_map(default_location=[-22.010147, -47.890706], default_zoom_start=5):
     base_map = folium.Map(location=default_location, zoom_start=default_zoom_start)
     return base_map

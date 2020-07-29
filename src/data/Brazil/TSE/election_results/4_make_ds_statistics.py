@@ -141,7 +141,7 @@ def generate_data_statistics(data, output_path):
     prof.to_file(output_file=output_path)
 
 
-def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
+def run(region, year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
         aggregate_level, per):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
@@ -150,7 +150,7 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get election results path
-    path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
+    path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')

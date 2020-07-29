@@ -26,7 +26,7 @@ def structure_data(office, input_path, output_path):
         raw_data = pd.read_csv(filepath, sep=";", encoding="latin1", na_values=["#NULO#", -1, -3])
         raw_data.DS_CARGO_PERGUNTA = raw_data.DS_CARGO_PERGUNTA.str.upper()
         raw_data.NM_VOTAVEL = raw_data.NM_VOTAVEL.str.upper()
-        raw_data['NM_VOTAVEL'] = raw_data['NM_VOTAVEL'].str.replace('[^A-Za-z\s]+', '')
+        # raw_data['NM_VOTAVEL'] = raw_data['NM_VOTAVEL'].str.replace('[^A-Za-z\s]+', '')
         # Filter raw data by political office
         filtered_raw_data = raw_data[(raw_data.DS_CARGO_PERGUNTA == office.upper())]
         # Get the votes per candidates/parties
@@ -59,7 +59,7 @@ def structure_data(office, input_path, output_path):
     logger.info('Done!')
 
 
-def run(year, political_office, office_folder, turn):
+def run(region, year, political_office, office_folder, turn):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -67,7 +67,7 @@ def run(year, political_office, office_folder, turn):
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get election results path
-    path = project_dir + environ.get("BRAZIL_ELECTION_RESULTS")
+    path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
     # Generate input output paths
     raw_path = path.format(year, 'raw')
     interim_path = path.format(year, 'interim')

@@ -16,23 +16,26 @@ generate_statistics = __import__('4_make_ds_statistics')
 warnings.filterwarnings('ignore')
 
 
-def make_interim_data(params):
+def make_interim_data(region, params):
     params = params.drop_duplicates(subset=['year', 'political_office', 'office_folder', 'turn'],
                                     keep='first')
     for index, parameters in params.iterrows():
-        make_political_office.run(year=parameters.year,
+        make_political_office.run(region=region,
+                                  year=parameters.year,
                                   political_office=parameters.political_office,
                                   office_folder=parameters.office_folder,
                                   turn=parameters.turn)
 
-        merge_datasets.run(year=parameters.year,
+        merge_datasets.run(region=region,
+                           year=parameters.year,
                            office_folder=parameters.office_folder,
                            turn=parameters.turn)
 
 
-def make_processed_data(params):
+def make_processed_data(region, params):
     for index, parameters in params.iterrows():
         with mlflow.start_run():
+            mlflow.log_param("region", region)
             mlflow.log_param("year", parameters.year)
             mlflow.log_param("political_office", parameters.political_office)
             mlflow.log_param("turn", parameters.turn)
@@ -42,7 +45,8 @@ def make_processed_data(params):
             mlflow.log_param("precision_categories", parameters.precision_categories)
             mlflow.log_param("aggregate_level", parameters.aggregate_level)
 
-            per = clean_dataset.run(year=parameters.year,
+            per = clean_dataset.run(region=region,
+                                    year=parameters.year,
                                     office_folder=parameters.office_folder,
                                     turn=parameters.turn,
                                     candidates=parameters.candidates,
@@ -51,7 +55,8 @@ def make_processed_data(params):
                                     precision_categories=parameters.precision_categories,
                                     aggregate_level=parameters.aggregate_level)
 
-            is_score = generate_statistics.run(year=parameters.year,
+            is_score = generate_statistics.run(region=region,
+                                               year=parameters.year,
                                                office_folder=parameters.office_folder,
                                                turn=parameters.turn,
                                                candidates=parameters.candidates,
@@ -65,6 +70,8 @@ def make_processed_data(params):
 
 
 if __name__ == '__main__':
+    #Set Region
+    region = 'RS'
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -72,7 +79,7 @@ if __name__ == '__main__':
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get election results path
-    path = 'file:' + project_dir + environ.get("BRAZIL_EXPERIMENTS")
+    path = 'file:' + project_dir + environ.get("{}_EXPERIMENTS".format(region))
     # Set mflow log dir
     mlflow.set_tracking_uri(path)
     try:
@@ -80,14 +87,14 @@ if __name__ == '__main__':
     except:
         mlflow.set_experiment('Make election results data sets')
 
-    param_sets = pd.read_csv('parameters_to_generate_ds.csv', converters={'candidates': literal_eval,
-                                                                          'city_limits': literal_eval,
-                                                                          'precision_categories': literal_eval})
+    param_sets = pd.read_csv('parameters_to_generate_2018_ds.csv', converters={'candidates': literal_eval,
+                                                                               'city_limits': literal_eval,
+                                                                               'precision_categories': literal_eval})
 
     # Set executions
     make_interim = False
     make_processed = True
     if make_interim:
-        make_interim_data(param_sets)
+        make_interim_data(region, param_sets)
     if make_processed:
-        make_processed_data(param_sets)
+        make_processed_data(region, param_sets)

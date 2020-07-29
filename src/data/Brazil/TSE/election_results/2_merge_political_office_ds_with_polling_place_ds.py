@@ -76,7 +76,7 @@ def generate_data_statistics(data, output_path):
     prof.to_file(output_file=output_path+'/summary.html')
 
 
-def run(year, office_folder, turn):
+def run(region, year, office_folder, turn):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -84,8 +84,8 @@ def run(year, office_folder, turn):
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get election results path
-    election_results_path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
-    polling_places_path = project_dir + environ.get('BRAZIL_POLLING_PLACES')
+    election_results_path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    polling_places_path = project_dir + environ.get('{}_POLLING_PLACES'.format(region))
     # Generate input output paths
     election_results_interim_path = election_results_path.format(year, 'interim')
     polling_places_processed_path = polling_places_path.format(year, 'processed')

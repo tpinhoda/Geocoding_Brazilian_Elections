@@ -75,7 +75,7 @@ def aggregate_data(data, aggr_level, candidates, output_path):
                 'QT_APTOS': 'sum',
                 'QT_COMPARECIMENTO': 'sum',
                 'QT_ABSTENCOES': 'sum',
-                #'QT_ELEITORES_BIOMETRIA_NH': 'sum',
+                'QT_ELEITORES_BIOMETRIA_NH': 'sum',
                 'BRANCO': 'sum',
                 'NULO': 'sum',
                 'lat': 'first',
@@ -115,7 +115,7 @@ def create_folder(path, folder_name):
     return path + '/'
 
 
-def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
+def run(region, year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
         aggregate_level):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
@@ -124,7 +124,7 @@ def run(year, office_folder, turn, candidates, city_limits, levenshtein_threshol
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get election results path
-    path = project_dir + environ.get('BRAZIL_ELECTION_RESULTS')
+    path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
