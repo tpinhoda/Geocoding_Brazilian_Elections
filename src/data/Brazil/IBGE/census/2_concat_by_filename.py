@@ -30,7 +30,7 @@ def concat_data(input_path, output_path, filenames_path):
             df_list.append(data)
         concat_df = pd.concat(df_list, axis=0)
         # Save the concatenated data
-        final_output_path = join(output_path, 'aggr_census_tract/not_joined')
+        final_output_path = join(output_path, 'not_joined')
         concat_df.to_csv(join(final_output_path, filename), index=False)
     logger.info('Done!')
 

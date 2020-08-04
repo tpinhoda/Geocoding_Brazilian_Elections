@@ -33,10 +33,10 @@ def join_data(input_path, output_path, categories_path):
             list_df.append(data)
         concat_data = pd.concat(list_df, axis=1)
         if category != 'Tudo':
-            final_output_path = join(output_path, 'aggr_census_tract/joined_by_category')
+            final_output_path = join(output_path, 'joined_by_category')
             concat_data.to_csv(join(final_output_path, category + '.csv'), index=False)
         else:
-            final_output_path = join(output_path, 'aggr_census_tract/joined_all')
+            final_output_path = join(output_path, 'joined_all')
             concat_data.to_csv(join(final_output_path, 'data.csv'), index=False)
 
 
@@ -53,7 +53,7 @@ def run(region, year):
     processed_path = path.format(year, 'processed')
     external_path = path.format(year, 'external')
     # Set paths
-    input_filepath = join(processed_path, 'aggr_census_tract/not_joined')
+    input_filepath = join(processed_path, 'not_joined')
     output_filepath = processed_path
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
