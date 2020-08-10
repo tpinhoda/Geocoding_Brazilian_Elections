@@ -1,3 +1,5 @@
+# Go to mashmaper.com ====================
+
 # -*- coding: utf-8 -*-
 import warnings
 import logging
@@ -6,13 +8,17 @@ import pandas as pd
 from os import listdir, environ, mkdir
 from os.path import isfile, join
 from pathlib import Path
+from shapely.geometry import JOIN_STYLE
 from tqdm import tqdm
+from shapely.geometry import Polygon
 from dotenv import load_dotenv, find_dotenv
 
 warnings.filterwarnings('ignore')
 
 
-def dissolve_data(input_path, output_path, region, aggr, buffer):
+def dissolve_data(input_path, output_path, region, aggr, buffer=0):
+    logger = logging.getLogger(__name__)
+    logger.info('Dissolving meshblock according to: {}'.format(aggr))
     if aggr == 'sub_dist':
         aggr_attr = 'CD_GEOCODS'
     elif aggr == 'census_tract':
@@ -21,12 +27,19 @@ def dissolve_data(input_path, output_path, region, aggr, buffer):
         aggr_attr = 'CD_GEOCODD'
     elif aggr == 'municipality':
         aggr_attr = 'CD_GEOCODM'
-
-    data = gpd.read_file(join(input_path, region+'.gpkg'))
-    data['geometry'] = data.buffer(buffer)
-    data = data.dissolve(by=aggr_attr, aggfunc='first')
+    elif aggr == 'weighting_area':
+        aggr_attr = 'Cod_ap'
+    # Read meshblock
+    data = gpd.read_file(join(input_path, region+'.shp'))
+    # data['geometry'] = data.buffer(buffer)
+    # Get only the boundary coordinates for each polygon
+    data['geometry'] = [Polygon(poly) for poly in data.exterior]
+    # Aggregate the data according to aggr_attr
+    data = data.dissolve(by=aggr_attr, aggfunc='first', as_index=False)
+    # Generate a folder for the aggr file
     exist, out_path = create_folder(output_path, aggr)
-    data.to_file(join(out_path, region + '.gpkg'), layer=aggr, driver="GPKG")
+    # data.to_file(join(out_path, region + '.gpkg'), layer=aggr, driver="GPKG")
+    data.to_file(join(out_path, 'shapefiles', region + '.shp'))
 
 
 def create_folder(path, folder_name):
@@ -54,16 +67,14 @@ def run(region, year, aggr, buffer):
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
     # Set paths
-    input_filepath = interim_path
+    input_filepath = join(processed_path, 'shapefiles', 'census_tract')
     output_filepath = processed_path
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     # Print parameters
-    print('======Parameters========')
-    print('Census year: {}'.format(year))
+    # print('======Parameters========')
+    # print('Census year: {}'.format(year))
 
-    dissolve_data(input_filepath, output_filepath, region, aggr, buffer)
+    dissolve_data(input_filepath, output_filepath, region, aggr)
 
-
-run('Brazil', '2010', 'sub_dist', 0.00001)
