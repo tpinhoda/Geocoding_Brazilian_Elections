@@ -11,7 +11,7 @@ from dotenv import load_dotenv, find_dotenv
 warnings.filterwarnings('ignore')
 
 
-def code_data(input_path, output_path):
+def code_data(input_path, output_path, wa_path):
     """ Runs data processing scripts to turn raw census data from (../raw) into
         coded data (saved in ../interim).
     """
@@ -64,9 +64,17 @@ def code_data(input_path, output_path):
             # New filename
             f_name = filename.split('_')[0] + '.csv'
             # Save the data as csv
+            merged_data =  add_weighting_area_code(merged_data, wa_path)
             merged_data.to_csv(join(output_state_path, f_name), index=False, encoding='utf-8')
     logger.info('Data saved in:\n' + output_state_path)
     logger.info('Done!')
+
+
+def add_weighting_area_code(data, path):
+    ref_data = pd.read_csv(path)
+    ref_data.rename(columns={'Cod_setor': 'Cod_Setor'}, inplace=True)
+    data = data.merge(ref_data, on='Cod_Setor', how='left')
+    return data
 
 
 def create_folder(path, folder_name):
@@ -93,9 +101,11 @@ def run(region, year):
     # Generate input output paths
     raw_path = path.format(year, 'raw')
     interim_path = path.format(year, 'interim')
+    external_path = path.format(year, 'external')
     # Set paths
     input_filepath = raw_path
     output_filepath = interim_path
+    wa_filepath = join(external_path, 'census_tract_x_weighting_area.csv')
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -103,4 +113,5 @@ def run(region, year):
     print('======Parameters========')
     print('Census year: {}'.format(year))
 
-    code_data(input_filepath, output_filepath)
+    code_data(input_filepath, output_filepath, wa_filepath)
+
