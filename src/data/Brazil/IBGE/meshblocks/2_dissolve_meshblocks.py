@@ -32,10 +32,10 @@ def dissolve_data(input_path, output_path, region, aggr, buffer=0):
     # Read meshblock
     data = gpd.read_file(join(input_path, region+'.shp'))
     # data['geometry'] = data.buffer(buffer)
-    # Get only the boundary coordinates for each polygon
-    data['geometry'] = [Polygon(poly) for poly in data.exterior]
     # Aggregate the data according to aggr_attr
     data = data.dissolve(by=aggr_attr, aggfunc='first', as_index=False)
+    # Get only the boundary coordinates for each polygon
+    #data['geometry'] = [Polygon(poly) for poly in data.exterior]
     # Generate a folder for the aggr file
     exist, out_path = create_folder(output_path, aggr)
     # data.to_file(join(out_path, region + '.gpkg'), layer=aggr, driver="GPKG")
@@ -54,7 +54,7 @@ def create_folder(path, folder_name):
     return exist, path
 
 
-def run(region, year, aggr, buffer):
+def run(region, year, aggr, buffer=0):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -67,7 +67,7 @@ def run(region, year, aggr, buffer):
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
     # Set paths
-    input_filepath = join(processed_path, 'shapefiles', 'census_tract')
+    input_filepath = join(processed_path, 'census_tract', 'shapefiles')
     output_filepath = processed_path
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

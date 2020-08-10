@@ -24,7 +24,7 @@ def concat_data(input_path):
         files[folder] = [filename for filename in listdir(join(input_path, folder)) if filename.endswith(".shp")][0]
     # Create a list to save the GeoDataframes
     list_gdf = []
-    for folder in tqdm(files, leave=False):
+    for folder in tqdm(files, leave=True):
         # Read the meshblock
         data = gpd.read_file(join(input_path, folder, files[folder]))
         # Generate the state abbreviation columns
@@ -41,10 +41,10 @@ def concat_data(input_path):
     # Check the number of GeoDataframes loaded
     if len(list_gdf) > 1:
         # Generate a single GeoDataframe
-        concat_df = gpd.GeoDataFrame(pd.concat(list_gdf, axis=0), crs={'init': 'GRS:1980'})
+        concat_df = gpd.GeoDataFrame(pd.concat(list_gdf, axis=0), crs='GRS:1980')
         return concat_df
     else:
-        data.crs = {'init': 'GRS:1980'}
+        data.crs = "EPSG:4326"
         return data
 
 

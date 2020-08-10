@@ -27,7 +27,7 @@ def generate_adjacency_matrix(input_filepath, output_filepath, region, aggr):
     elif aggr == 'weighting_area':
         aggr_attr = 'Cod_ap'
     # Read meshblock
-    data = gpd.read_file(join(input_filepath, aggr, region + '.shp'))
+    data = gpd.read_file(join(input_filepath, aggr, 'shapefiles', region + '.shp'))
     # Set the aggregation attribute as index
     data.set_index(aggr_attr, inplace=True)
     # Calculate the adjacency matrix according to queen strategy
@@ -58,7 +58,7 @@ def run(region, year, aggr):
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     # Print parameters
-    print('======Parameters========')
-    print('Census year: {}'.format(year))
+    # print('======Parameters========')
+    # print('Census year: {}'.format(year))
 
     generate_adjacency_matrix(input_filepath, output_filepath, region, aggr)
