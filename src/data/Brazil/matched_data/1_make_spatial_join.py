@@ -7,6 +7,7 @@ from os import listdir, environ, mkdir
 from os.path import isfile, join
 from pathlib import Path
 from tqdm import tqdm
+from shapely.geometry import Point
 from dotenv import load_dotenv, find_dotenv
 
 warnings.filterwarnings('ignore')
@@ -15,7 +16,54 @@ warnings.filterwarnings('ignore')
 def make_spatial_join(input_path_tse, input_path_meshblocks, output_path):
     data_tse = pd.read_csv(input_path_tse)
     meshblocks = gpd.read_file(input_path_meshblocks)
-    print(data_tse.head())
+    geometry = [Point((row.lon, row.lat)) for index, row in data_tse.iterrows()]
+    data_tse = gpd.GeoDataFrame(data_tse, geometry=geometry)
+    data_tse.crs = "EPSG:4674'"
+    data_joined = gpd.sjoin(left_df=data_tse, right_df=meshblocks, how='left', op='within')
+    #data_joined.to_csv(join(output_path, 'data.csv'), index=False)
+    return data_joined
+
+
+def aggregate_data(data, aggregate_level, candidates):
+    aggr_map = {'Cod_ap': 'first',
+                'Cod_setor': 'first',
+                'CD_GEOCODB': 'first',
+                'NM_BAIRRO': 'first',
+                'CD_GEOCODS': 'first',
+                'NM_SUBDIST': 'first',
+                'CD_GEOCODD': 'first',
+                'NM_DISTRIT': 'first',
+                'CD_GEOCODM': 'first',
+                'NM_MUNICIP': 'first',
+                'NM_MICRO': 'first',
+                'NM_MESO': 'first',
+                'NM_UF': 'first',
+                'CD_GEOCODU': 'first',
+                'QT_APTOS': 'sum',
+                'QT_COMPARECIMENTO': 'sum',
+                'QT_ABSTENCOES': 'sum',
+                'QT_ELEITORES_BIOMETRIA_NH': 'sum',
+                'BRANCO': 'sum',
+                'NULO': 'sum'}
+
+    for c in candidates:
+        aggr_map[c] = 'sum'
+
+    if aggregate_level == 'Polling place':
+        aggr_data = data.groupby('id_polling_place')
+    elif aggregate_level == 'Section':
+        aggr_data = data.groupby('id_section')
+    elif aggregate_level == 'Zone':
+        aggr_data = data.groupby('id_zone')
+    elif aggregate_level == 'City':
+        aggr_data = data.groupby('id_city')
+    elif aggregate_level == 'weighting_area':
+        aggr_data = data.groupby('Cod_ap')
+
+    data = aggr_data.agg(aggr_map)
+
+    return data
+
 
 def create_folder(path, folder_name):
     logger = logging.getLogger(__name__)
@@ -29,16 +77,16 @@ def create_folder(path, folder_name):
     return path
 
 
-def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, ibge_year, ibge_aggr):
+def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, candidates, ibge_year, ibge_aggr):
     # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
+    project_dir = str(Path(__file__).resolve().parents[4])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
     # Get census results path
     path_tse = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
-    path_meshblocks = project_dir + environ.get('{}_CENSUS_DATA'.format(region))
+    path_meshblocks = project_dir + environ.get('{}_MESHBLOCKS'.format(region))
     path_matched = project_dir + environ.get('{}_MATCHED_DATA'.format(region))
     # Generate input output paths
 
@@ -56,20 +104,26 @@ def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, ibge_year, ib
     logger.info('Creating root folder.')
     folder = 'tse{}_ibge{}'.format(tse_year, ibge_year)
     output_filepath = create_folder(path_matched, folder)
+    # Create output office folder
+    logger.info('Creating office folder.')
+    folder = '{}_{}'.format(tse_office, tse_turn)
+    output_filepath = create_folder(output_filepath, folder)
     # Create aggregation folder
     logger.info('Creating aggregation folder.')
     folder = ibge_aggr
-    output_filepath = create_folder(output_path, folder)
+    output_filepath = create_folder(output_filepath, folder)
     # Create PER folder
     logger.info('Creating PER folder.')
     folder = tse_per
-    output_filepath = create_folder(output_path, folder)
+    output_filepath = create_folder(output_filepath, folder)
     # Create election results folder
     logger.info('Creating election results folder.')
     folder = 'election_results'
-    output_filepath = create_folder(output_path, folder)
+    output_filepath = create_folder(output_filepath, folder)
 
-    make_spatial_join(input_filepath_tse, input_filepath_meshblocks, output_filepath)
+    data = make_spatial_join(input_filepath_tse, input_filepath_meshblocks, output_filepath)
+    data = aggregate_data(data, ibge_aggr, candidates)
+    data.to_csv(join(output_filepath, 'data.csv'), index=False)
 
 
 run(region='RS',
@@ -77,4 +131,7 @@ run(region='RS',
     tse_office='president',
     tse_turn='turn_2',
     tse_aggr='aggr_by_polling_place',
-    tse_per='')
+    tse_per='PER_99.33031',
+    candidates=['FERNANDO HADDAD', 'JAIR BOLSONARO'],
+    ibge_year='2010',
+    ibge_aggr='weighting_area')
