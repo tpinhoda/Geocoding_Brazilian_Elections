@@ -2,7 +2,7 @@
 import warnings
 import logging
 import pandas as pd
-from os import listdir, environ
+from os import listdir, environ, remove
 from os.path import isfile, join
 from pathlib import Path
 from tqdm import tqdm
@@ -74,6 +74,10 @@ def run(region, year, political_office, office_folder, turn):
     # Set paths
     input_filepath = raw_path + '/turn_{}/'.format(turn)
     output_filepath = interim_path + '/{}/turn_{}/'.format(office_folder, turn)
+    # Remove existing files
+    file_list = [f for f in listdir(output_filepath)]
+    for f in file_list:
+        remove(join(output_filepath, f))
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)

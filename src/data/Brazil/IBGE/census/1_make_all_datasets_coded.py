@@ -11,7 +11,7 @@ from dotenv import load_dotenv, find_dotenv
 warnings.filterwarnings('ignore')
 
 
-def code_data(input_path, output_path, wa_path):
+def code_data(input_path, output_path, wa_path, aggr):
     """ Runs data processing scripts to turn raw census data from (../raw) into
         coded data (saved in ../interim).
     """
@@ -44,6 +44,10 @@ def code_data(input_path, output_path, wa_path):
             # Load raw data
             filepath = join(input_state_path, filename)
             raw_data = pd.read_csv(filepath, sep=";", encoding='latin')
+            raw_data.replace('X', 0, inplace=True)
+            raw_data.fillna(0, inplace=True)
+            for col in raw_data.columns:
+                raw_data[col] = pd.to_numeric(raw_data[col], errors='ignore')
             first_col = raw_data.columns.values[0]
             raw_data.rename(columns={first_col: 'Cod_Setor'}, inplace=True)
             try:
@@ -64,7 +68,10 @@ def code_data(input_path, output_path, wa_path):
             # New filename
             f_name = filename.split('_')[0] + '.csv'
             # Save the data as csv
-            merged_data =  add_weighting_area_code(merged_data, wa_path)
+            merged_data = add_weighting_area_code(merged_data, wa_path)
+
+            merged_data = aggregate_data(merged_data, aggr)
+            merged_data = drop_unnamed_cols(merged_data)
             merged_data.to_csv(join(output_state_path, f_name), index=False, encoding='utf-8')
     logger.info('Data saved in:\n' + output_state_path)
     logger.info('Done!')
@@ -74,6 +81,35 @@ def add_weighting_area_code(data, path):
     ref_data = pd.read_csv(path)
     ref_data.rename(columns={'Cod_setor': 'Cod_Setor'}, inplace=True)
     data = data.merge(ref_data, on='Cod_Setor', how='left')
+    return data
+
+
+def aggregate_data(data, aggr):
+    map_func = {col: 'sum' for col in data.columns}
+    code_cols = ['Cod_Setor', 'Cod_ap', 'Cod_Grande_Regiao', 'Nome_Grande_Regiao', 'Cod_UF',
+                 'Nome_UF ', 'Cod_Meso', 'Nome_Meso', 'Cod_Micro', 'Nome_Micro',
+                 'Cod_RM', 'Nome_RM', 'Cod_Municipio', 'Nome_Municipio',
+                 'Cod_Distrito', 'Nome_Distrito', 'Cod_Subdistrito',
+                 'Nome_Subdistrito', 'Cod_Bairro', 'Nome_Bairro']
+    for col in code_cols:
+        map_func[col] = 'first'
+
+    if aggr == 'weighting_area':
+        aggr_attr = 'Cod_ap'
+        del map_func['Cod_ap']
+        data = data.groupby(by=aggr_attr, as_index=False).agg(map_func)
+    elif aggr == 'sub_dist':
+        aggr_attr = 'Cod_Subdistrito'
+        del map_func['Cod_Subdistrito']
+        # map_func['Code_Setor'] = lambda x: x.values.tolist()
+        # map_func['Code_ap'] = lambda x: x.values.tolist()
+        data = data.groupby(by=aggr_attr, as_index=False).agg(map_func)
+
+    return data
+
+
+def drop_unnamed_cols(data):
+    data = data.loc[:, ~data.columns.str.contains('^Unnamed')]
     return data
 
 
@@ -89,7 +125,7 @@ def create_folder(path, folder_name):
     return exist, path
 
 
-def run(region, year):
+def run(region, year, aggr):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -113,5 +149,5 @@ def run(region, year):
     print('======Parameters========')
     print('Census year: {}'.format(year))
 
-    code_data(input_filepath, output_filepath, wa_filepath)
+    code_data(input_filepath, output_filepath, wa_filepath, aggr)
 

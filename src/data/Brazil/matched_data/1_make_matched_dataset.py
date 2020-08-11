@@ -7,7 +7,6 @@ from pathlib import Path
 from shapely.geometry import Point
 
 
-
 def aggregate_data(data, aggregate_level):
     aggr_map = {'SG_ UF': 'first',
                 'NM_MUNICIPIO': 'first',

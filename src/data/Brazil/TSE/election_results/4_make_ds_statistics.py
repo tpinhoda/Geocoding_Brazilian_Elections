@@ -49,7 +49,16 @@ def n_cities(original, cleaned):
     return {'represented': cities, 'left': left_cities}
 
 
-def n_aggr_level(original, cleaned):
+def n_aggr_level(original, cleaned, aggr):
+    if aggr == 'Polling place':
+        aggr_attr = 'id_polling_place'
+    elif aggr == 'City':
+        aggr_attr = 'id_city'
+    elif aggr == 'Section':
+        aggr_attr = 'id_section'
+    elif aggr == 'Zone':
+        aggr_attr = 'id_zone'
+    original = original.groupby(aggr_attr).agg('first')
     rows = len(cleaned)
     rows_perc = 100 * rows / len(original)
     rows = str(rows) + ' (' + str(round(rows_perc, 2)) + '%)'
@@ -118,7 +127,7 @@ def generate_summary_report(original_data,
                             cleaned_data,
                             aggregate_level):
     cities = n_cities(original_data, cleaned_data)
-    aggr_places = n_aggr_level(original_data, cleaned_data)
+    aggr_places = n_aggr_level(original_data, cleaned_data, aggregate_level)
     electorate = n_attribute(original_data, cleaned_data, 'QT_APTOS')
     turnout = n_attribute(original_data, cleaned_data, 'QT_COMPARECIMENTO')
 

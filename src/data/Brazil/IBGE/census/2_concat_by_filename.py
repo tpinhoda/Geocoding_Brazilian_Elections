@@ -35,7 +35,7 @@ def concat_data(input_path, output_path, filenames_path):
     logger.info('Done!')
 
 
-def run(region, year):
+def run(region, year, aggr):
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
@@ -50,7 +50,7 @@ def run(region, year):
     external_path = path.format(year, 'external')
     # Set paths
     input_filepath = interim_path
-    output_filepath = processed_path
+    output_filepath = join(processed_path, aggr)
     # Log text to show on screen
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
