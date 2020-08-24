@@ -2,7 +2,7 @@ artifact_uri: file:C:\Users\Tiago\Documents\GitHub\Election_Forensics/experiment
 end_time: 1597165030384
 entry_point_name: ''
 experiment_id: '0'
-lifecycle_stage: active
+lifecycle_stage: deleted
 name: ''
 run_id: fb46bd541f1446cf8c47db95db0dbdf8
 run_uuid: fb46bd541f1446cf8c47db95db0dbdf8

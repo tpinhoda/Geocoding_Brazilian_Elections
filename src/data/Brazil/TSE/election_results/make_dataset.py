@@ -70,7 +70,7 @@ def make_processed_data(region, params):
 
 
 if __name__ == '__main__':
-    #Set Region
+    # Set Region
     region = 'RS'
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                                                                                'precision_categories': literal_eval})
 
     # Set executions
-    make_interim = False
+    make_interim = True
     make_processed = True
     if make_interim:
         make_interim_data(region, param_sets)

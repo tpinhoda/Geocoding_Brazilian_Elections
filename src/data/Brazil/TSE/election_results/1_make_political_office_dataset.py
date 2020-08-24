@@ -65,8 +65,10 @@ def run(region, year, political_office, office_folder, turn):
     load_dotenv(dotenv_path)
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
+    print(data_dir)
     # Get election results path
-    path = join(data_dir, environ.get('{}_ELECTION_RESULTS'.format(region)))
+    path = data_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    print(path)
     # Generate input output paths
     raw_path = path.format(year, 'raw')
     interim_path = path.format(year, 'interim')

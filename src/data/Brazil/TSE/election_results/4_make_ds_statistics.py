@@ -2,9 +2,7 @@
 import warnings
 import logging
 import pandas as pd
-from pathlib import Path
 from os import environ
-from os.path import join
 from dotenv import load_dotenv, find_dotenv
 from pandas_profiling import ProfileReport
 
@@ -160,7 +158,7 @@ def run(region, year, office_folder, turn, candidates, city_limits, levenshtein_
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
     # Get election results path
-    path = join(data_dir, environ.get('{}_ELECTION_RESULTS'.format(region)))
+    path = data_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')

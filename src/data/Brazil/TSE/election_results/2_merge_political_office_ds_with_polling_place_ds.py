@@ -84,8 +84,8 @@ def run(region, year, office_folder, turn):
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
     # Get election results path
-    election_results_path = join(data_dir, environ.get('{}_ELECTION_RESULTS'.format(region)))
-    polling_places_path = join(data_dir, environ.get('{}_POLLING_PLACES'.format(region)))
+    election_results_path = data_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    polling_places_path = data_dir + environ.get('{}_POLLING_PLACES'.format(region))
     # Generate input output paths
     election_results_interim_path = election_results_path.format(year, 'interim')
     polling_places_processed_path = polling_places_path.format(year, 'processed')
