@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import mlflow
-import pandas as pd
 import warnings
-from ast import literal_eval
 from os import environ
 from pathlib import Path
 

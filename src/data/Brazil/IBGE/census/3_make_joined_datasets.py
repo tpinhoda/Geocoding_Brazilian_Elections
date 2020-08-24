@@ -3,9 +3,8 @@ import warnings
 import logging
 import json
 import pandas as pd
-from os import listdir, environ, mkdir
-from os.path import isfile, join
-from pathlib import Path
+from os import environ
+from os.path import join
 from tqdm import tqdm
 from dotenv import load_dotenv, find_dotenv
 
@@ -41,14 +40,14 @@ def join_data(input_path, output_path, categories_path):
 
 
 def run(region, year, aggr):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path = project_dir + environ.get('{}_CENSUS_DATA'.format(region))
+    path = data_dir + environ.get('{}_CENSUS_DATA'.format(region))
     # Generate input output paths
     processed_path = path.format(year, 'processed')
     external_path = path.format(year, 'external')
