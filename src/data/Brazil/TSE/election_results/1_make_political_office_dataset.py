@@ -4,7 +4,6 @@ import logging
 import pandas as pd
 from os import listdir, environ, remove
 from os.path import isfile, join
-from pathlib import Path
 from tqdm import tqdm
 from dotenv import load_dotenv, find_dotenv
 
@@ -60,14 +59,14 @@ def structure_data(office, input_path, output_path):
 
 
 def run(region, year, political_office, office_folder, turn):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get election results path
-    path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    path = join(data_dir, environ.get('{}_ELECTION_RESULTS'.format(region)))
     # Generate input output paths
     raw_path = path.format(year, 'raw')
     interim_path = path.format(year, 'interim')

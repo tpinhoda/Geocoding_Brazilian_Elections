@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 from os import environ
+from os.path import join
 from dotenv import load_dotenv, find_dotenv
 from pandas_profiling import ProfileReport
 
@@ -152,14 +153,14 @@ def generate_data_statistics(data, output_path):
 
 def run(region, year, office_folder, turn, candidates, city_limits, levenshtein_threshold, precision_categories,
         aggregate_level, per):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get election results path
-    path = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    path = join(data_dir, environ.get('{}_ELECTION_RESULTS'.format(region)))
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')
