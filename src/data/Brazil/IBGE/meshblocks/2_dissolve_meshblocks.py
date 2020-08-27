@@ -4,13 +4,8 @@
 import warnings
 import logging
 import geopandas as gpd
-import pandas as pd
-from os import listdir, environ, mkdir
-from os.path import isfile, join
-from pathlib import Path
-from shapely.geometry import JOIN_STYLE
-from tqdm import tqdm
-from shapely.geometry import Polygon
+from os import environ, mkdir
+from os.path import join
 from dotenv import load_dotenv, find_dotenv
 
 warnings.filterwarnings('ignore')
@@ -55,14 +50,14 @@ def create_folder(path, folder_name):
 
 
 def run(region, year, aggr, buffer=0):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path = project_dir + environ.get('{}_MESHBLOCKS'.format(region))
+    path = data_dir + environ.get('{}_MESHBLOCKS'.format(region))
     # Generate input output paths
     interim_path = path.format(year, 'interim')
     processed_path = path.format(year, 'processed')

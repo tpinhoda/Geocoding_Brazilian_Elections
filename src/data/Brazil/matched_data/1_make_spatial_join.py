@@ -3,10 +3,8 @@ import warnings
 import logging
 import geopandas as gpd
 import pandas as pd
-from os import listdir, environ, mkdir
-from os.path import isfile, join
-from pathlib import Path
-from tqdm import tqdm
+from os import environ, mkdir
+from os.path import join
 from shapely.geometry import Point
 from dotenv import load_dotenv, find_dotenv
 
@@ -18,7 +16,7 @@ def make_spatial_join(input_path_tse, input_path_meshblocks, output_path):
     meshblocks = gpd.read_file(input_path_meshblocks)
     geometry = [Point((row.lon, row.lat)) for index, row in data_tse.iterrows()]
     data_tse = gpd.GeoDataFrame(data_tse, geometry=geometry)
-    data_tse.crs = "EPSG:4674'"
+    data_tse.crs = "EPSG:4674"
     data_joined = gpd.sjoin(left_df=data_tse, right_df=meshblocks, how='left', op='within')
     #data_joined.to_csv(join(output_path, 'data.csv'), index=False)
     return data_joined
@@ -78,16 +76,16 @@ def create_folder(path, folder_name):
 
 
 def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, candidates, ibge_year, ibge_aggr):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[4])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path_tse = project_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
-    path_meshblocks = project_dir + environ.get('{}_MESHBLOCKS'.format(region))
-    path_matched = project_dir + environ.get('{}_MATCHED_DATA'.format(region))
+    path_tse = data_dir + environ.get('{}_ELECTION_RESULTS'.format(region))
+    path_meshblocks = data_dir + environ.get('{}_MESHBLOCKS'.format(region))
+    path_matched = data_dir + environ.get('{}_MATCHED_DATA'.format(region))
     # Generate input output paths
 
     processed_path_tse = path_tse.format(tse_year, 'processed')
@@ -123,15 +121,16 @@ def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, candidates, i
 
     data = make_spatial_join(input_filepath_tse, input_filepath_meshblocks, output_filepath)
     data = aggregate_data(data, ibge_aggr, candidates)
+    data.index = data.index.astype('int64')
     data.to_csv(join(output_filepath, 'data.csv'), index=False)
 
 
-run(region='RS',
-    tse_year='2018',
-    tse_office='president',
-    tse_turn='turn_2',
-    tse_aggr='aggr_by_polling_place',
-    tse_per='PER_99.33031',
-    candidates=['FERNANDO HADDAD', 'JAIR BOLSONARO'],
-    ibge_year='2010',
-    ibge_aggr='weighting_area')
+#run(region='RS',
+#    tse_year='2018',
+#    tse_office='president',
+#    tse_turn='turn_2',
+#    tse_aggr='aggr_by_polling_place',
+#    tse_per='PER_99.33031',
+#    candidates=['FERNANDO HADDAD', 'JAIR BOLSONARO'],
+#    ibge_year='2010',
+#    ibge_aggr='weighting_area')

@@ -24,11 +24,15 @@ def join_data(input_path, output_path, categories_path):
         logger.info('Joining files: ' + category)
         for filename in tqdm(categories[category]):
             data = pd.read_csv(join(input_path, filename))
+            code_cols = data.columns.values[0:20]
+
             if len(list_df):
-                cols_drop = data.columns.values[0:19]
-                data.drop(cols_drop, axis=1, inplace=True)
-            cols = [filename + '_' + c for c in data.columns.values]
-            data.columns = cols
+                data.drop(code_cols, axis=1, inplace=True)
+                cols = [filename.split('.')[0] + '_' + c for c in data.columns.values]
+                data.columns = cols
+            else:
+                cols = [filename.split('.')[0] + '_' + c for c in data.columns.values[20:len(data.columns)]]
+                data.columns = code_cols.tolist() + cols
             list_df.append(data)
         concat_data = pd.concat(list_df, axis=1)
         if category != 'Tudo':

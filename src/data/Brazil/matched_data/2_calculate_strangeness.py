@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import warnings
 import logging
-import geopandas as gpd
 import pandas as pd
-from os import listdir, environ, mkdir
-from os.path import isfile, join
-from pathlib import Path
-from tqdm import tqdm
-from shapely.geometry import Point
+from os import environ
+from os.path import join
 from dotenv import load_dotenv, find_dotenv
 import numpy as np
 from scipy.spatial import distance
@@ -27,13 +23,18 @@ def calculate_strangeness(path_tse, input_path_adj_matrix, candidate, dist_func=
     hierarchies = ['NM_MICRO', 'NM_MESO', 'NM_UF']
     hierarchies_strangeness = dict()
     data = pd.read_csv(join(path_tse, 'data.csv'))
-    matrix = pd.read_csv(input_path_adj_matrix, index_col='Cod_ap')
+    matrix = pd.read_csv(input_path_adj_matrix)
+
+    data.set_index(matrix.columns.values[0], inplace=True)
+    data.index = data.index.astype('int64')
+    matrix.set_index(matrix.columns.values[0], inplace=True)
+
     for geo_hierarchy in hierarchies:
         aggregated_data = data.groupby(geo_hierarchy)
-        print(len(aggregated_data))
         list_strangeness = []
         for geo_hie, region_data in aggregated_data:
-            region_matrix = matrix.iloc[region_data.index, region_data.index]
+            region_matrix = matrix.loc[region_data.index]
+            region_matrix = region_matrix[region_data.index.astype(str).values]
             if dist_func == 'city_block':
                 votes_matrix = calculate_cityblock_matrix(region_data, candidate)
             adj_matrix = pd.DataFrame(votes_matrix.values*region_matrix.values, columns=region_matrix.index, index=region_matrix.index)
@@ -45,16 +46,16 @@ def calculate_strangeness(path_tse, input_path_adj_matrix, candidate, dist_func=
     df_strangeness.to_csv(join(path_tse, 'strangeness.csv'))
 
 
-def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, candidates, ibge_year, ibge_aggr):
-    # Project path
-    project_dir = str(Path(__file__).resolve().parents[4])
+def run(region, tse_year, tse_office, tse_turn, tse_per, candidates, ibge_year, ibge_aggr):
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    # Get data root path
+    data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path_meshblocks = project_dir + environ.get('{}_MESHBLOCKS'.format(region))
-    path_matched = project_dir + environ.get('{}_MATCHED_DATA'.format(region))
+    path_meshblocks = data_dir + environ.get('{}_MESHBLOCKS'.format(region))
+    path_matched = data_dir + environ.get('{}_MATCHED_DATA'.format(region))
     # Generate input output paths
 
     joined_data_path = path_matched
@@ -72,12 +73,11 @@ def run(region, tse_year, tse_office, tse_turn, tse_aggr, tse_per, candidates, i
     calculate_strangeness(input_filepath_tse, input_filepath_adj_matrix, candidate=candidates[0])
 
 
-run(region='RS',
-    tse_year='2018',
-    tse_office='president',
-    tse_turn='turn_2',
-    tse_aggr='aggr_by_polling_place',
-    tse_per='PER_99.33031',
-    candidates=['FERNANDO HADDAD', 'JAIR BOLSONARO'],
-    ibge_year='2010',
-    ibge_aggr='weighting_area')
+#run(region='RS',
+#    tse_year='2018',
+#    tse_office='president',
+#    tse_turn='turn_2',
+#    tse_per='PER_99.33031',
+#    candidates=['FERNANDO HADDAD', 'JAIR BOLSONARO'],
+#    ibge_year='2010',
+#    ibge_aggr='weighting_area')
