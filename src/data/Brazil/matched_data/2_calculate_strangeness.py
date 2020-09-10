@@ -32,6 +32,7 @@ def calculate_strangeness(path_tse, input_path_adj_matrix, candidate, dist_func=
     for geo_hierarchy in hierarchies:
         aggregated_data = data.groupby(geo_hierarchy)
         list_strangeness = []
+        list_strangeness_disc = []
         for geo_hie, region_data in aggregated_data:
             region_matrix = matrix.loc[region_data.index]
             region_matrix = region_matrix[region_data.index.astype(str).values]
@@ -39,10 +40,16 @@ def calculate_strangeness(path_tse, input_path_adj_matrix, candidate, dist_func=
                 votes_matrix = calculate_cityblock_matrix(region_data, candidate)
             adj_matrix = pd.DataFrame(votes_matrix.values*region_matrix.values, columns=region_matrix.index, index=region_matrix.index)
             strangeness = adj_matrix.sum(axis=0)
+            discrete_str = pd.qcut(strangeness, q=4, labels=False).astype(str)
+            list_strangeness_disc.append(discrete_str)
             list_strangeness.append(strangeness)
         hierarchies_strangeness[geo_hierarchy+'_STRANGENESS'] = pd.concat(list_strangeness, axis=0)
+        hierarchies_strangeness['quantile_'+geo_hierarchy+'_STRANGENESS'] = pd.concat(list_strangeness_disc, axis=0)
 
     df_strangeness = pd.concat(hierarchies_strangeness, axis=1)
+    #for col in df_strangeness.columns:
+    #    df_strangeness['quantile_'+col] = pd.qcut(df_strangeness[col], q=4, labels=False)
+    # df_strangeness = (df_strangeness-df_strangeness.min())/(df_strangeness.max()-df_strangeness.min())
     df_strangeness.to_csv(join(path_tse, 'strangeness.csv'))
 
 

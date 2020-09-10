@@ -71,6 +71,9 @@ def code_data(input_path, output_path, wa_path, aggr):
 
             merged_data = aggregate_data(merged_data, aggr)
             merged_data = drop_unnamed_cols(merged_data)
+            cols = merged_data.columns.values[20:len(merged_data.columns)]
+            #merged_data[cols_to_normalize] = (merged_data[cols_to_normalize] - merged_data[cols_to_normalize].mean()) / merged_data[cols_to_normalize].std()
+            #merged_data[cols] = (merged_data[cols] - merged_data[cols].min()) / (merged_data[cols].max() - merged_data[cols].min())
             merged_data.to_csv(join(output_state_path, f_name), index=False, encoding='utf-8')
     logger.info('Data saved in:\n' + output_state_path)
     logger.info('Done!')

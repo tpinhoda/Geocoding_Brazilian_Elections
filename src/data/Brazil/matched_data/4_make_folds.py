@@ -2,6 +2,7 @@
 import warnings
 import logging
 import pandas as pd
+import arff
 from os import environ, mkdir
 from os.path import join
 from dotenv import load_dotenv, find_dotenv
@@ -25,9 +26,10 @@ def make_folds(matched_path, adj_path, spatial_attr):
     adj_m.set_index(adj_m.columns.values[0], inplace=True)
 
     index_to_remove = matched_data[pd.isnull(matched_data).any(axis=1)].index
-    matched_data.drop(index_to_remove)
-    adj_m.drop(index_to_remove, axis=0)
-    adj_m.drop(index_to_remove.astype(str), axis=1)
+    matched_data.drop(index_to_remove, inplace=True)
+    adj_m.drop(index_to_remove, axis=0, inplace=True)
+    adj_m.drop(index_to_remove.astype(str), axis=1, inplace=True)
+
     for city, test_data in tqdm(matched_data.groupby(by=spatial_attr)):
         fold_path = create_folder(output_path, str(city).lower())
         train_data = matched_data.copy()
@@ -36,6 +38,8 @@ def make_folds(matched_path, adj_path, spatial_attr):
         train_data.drop(buffer, inplace=True)
         test_data.to_csv(join(fold_path, 'test.csv'))
         train_data.to_csv(join(fold_path, 'train.csv'))
+        arff.dump(join(fold_path, 'train.arff'), train_data.values, relation='relation name', names=train_data.columns)
+        arff.dump(join(fold_path, 'test.arff'), test_data.values, relation='relation name', names=test_data.columns)
 
 
 def create_folder(path, folder_name):

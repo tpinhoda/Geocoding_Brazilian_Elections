@@ -77,7 +77,7 @@ if __name__ == '__main__':
     candidates = ['FERNANDO HADDAD', 'JAIR BOLSONARO']
     ibge_year = '2010'
     ibge_aggr = 'weighting_area'
-    folds_attr = 'Cod_Municipio'
+    folds_attr = 'Cod_Micro'
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
