@@ -36,18 +36,17 @@ def make_processed_data(region, year, aggr):
 
 
 if __name__ == '__main__':
-    # Set Parameters
-    region = 'RS'
-    year = '2010'
-    aggr = 'weighting_area'
     # Project path
     project_dir = str(Path(__file__).resolve().parents[5])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    region_name = environ.get('REGION_NAME')
+    census_year = environ.get('CENSUS_YEAR')
+    aggr = environ.get('AGGREGATION_LEVEL')
     # Get election results path
-    path = 'file:' + project_dir + environ.get("{}_EXPERIMENTS".format(region))
+    path = 'file:' + project_dir + environ.get("LOGS").format(region_name)
     # Set mflow log dir
     mlflow.set_tracking_uri(path)
     try:
@@ -59,6 +58,6 @@ if __name__ == '__main__':
     make_interim = True
     make_processed = True
     if make_interim:
-        make_interim_data(region, year, aggr)
+        make_interim_data(region_name, census_year, aggr)
     if make_processed:
-        make_processed_data(region, year, aggr)
+        make_processed_data(region_name, census_year, aggr)

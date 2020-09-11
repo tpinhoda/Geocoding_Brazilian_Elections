@@ -51,10 +51,10 @@ def run(region, year, aggr):
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path = data_dir + environ.get('{}_CENSUS_DATA'.format(region))
+    path = data_dir + environ.get('CENSUS_DATA')
     # Generate input output paths
-    processed_path = path.format(year, 'processed')
-    external_path = path.format(year, 'external')
+    processed_path = path.format(region, year, 'processed')
+    external_path = path.format(region, year, 'external')
     # Set paths
     input_filepath = join(processed_path, aggr, 'not_joined')
     output_filepath = join(processed_path, aggr)
