@@ -75,11 +75,11 @@ def run(region, year):
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path = data_dir + environ.get('{}_MESHBLOCKS'.format(region))
+    path = data_dir + environ.get('MESHBLOCKS')
     # Generate input output paths
-    raw_path = path.format(year, 'raw')
-    processed_path = path.format(year, 'processed')
-    external_path = path.format(year, 'external')
+    raw_path = path.format(region, year, 'raw')
+    processed_path = path.format(region, year, 'processed')
+    external_path = path.format(region, year, 'external')
     # Set paths
     input_filepath = raw_path
     output_filepath = join(processed_path, 'census_tract')

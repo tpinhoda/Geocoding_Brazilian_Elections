@@ -46,9 +46,9 @@ def run(region, year, aggr):
     # Get data root path
     data_dir = environ.get('ROOT_DATA')
     # Get census results path
-    path = data_dir + environ.get('{}_MESHBLOCKS'.format(region))
+    path = data_dir + environ.get('MESHBLOCKS')
     # Generate input output paths
-    processed_path = path.format(year, 'processed')
+    processed_path = path.format(region, year, 'processed')
     # Set paths
     input_filepath = processed_path
     output_filepath = processed_path

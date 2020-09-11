@@ -27,18 +27,17 @@ def make_data(region, year, aggr):
 
 
 if __name__ == '__main__':
-    # Set Paramenters
-    region = 'RS'
-    year = '2010'
-    aggr = 'weighting_area'
     # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
+    project_dir = str(Path(__file__).resolve().parents[4])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
     load_dotenv(dotenv_path)
+    region_name = environ.get('REGION_NAME')
+    census_year = environ.get('CENSUS_YEAR')
+    aggr = environ.get('AGGREGATION_LEVEL')
     # Get election results path
-    path = 'file:' + project_dir + environ.get("{}_EXPERIMENTS".format(region))
+    path = 'file:' + project_dir + environ.get("Logs").format(region_name)
     # Set mlflow log dir
     mlflow.set_tracking_uri(path)
     try:
@@ -46,4 +45,4 @@ if __name__ == '__main__':
     except:
         mlflow.set_experiment('Make meshblocks data sets')
     # Set executions
-    make_data(region, year, aggr)
+    make_data(region_name, census_year, aggr)

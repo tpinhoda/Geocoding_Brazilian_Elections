@@ -37,7 +37,7 @@ def make_processed_data(region, year, aggr):
 
 if __name__ == '__main__':
     # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
+    project_dir = str(Path(__file__).resolve().parents[4])
     # Find data.env automatically by walking up directories until it's found
     dotenv_path = find_dotenv(filename='data.env')
     # Load up the entries as environment variables
