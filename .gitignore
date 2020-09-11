@@ -87,4 +87,4 @@ target/
 
 # Mypy cache
 .mypy_cache/
-/data_03072020/
+/reports/mlflow_log/
