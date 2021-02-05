@@ -55,7 +55,7 @@ if __name__ == '__main__':
         mlflow.set_experiment('Make census data sets')
 
     # Set executions
-    make_interim = True
+    make_interim = False
     make_processed = True
     if make_interim:
         make_interim_data(region_name, census_year, aggr)

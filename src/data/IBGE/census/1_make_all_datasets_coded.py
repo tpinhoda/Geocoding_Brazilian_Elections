@@ -25,7 +25,7 @@ def code_data(input_path, output_path, wa_path, aggr):
         filenames = [filename for filename in listdir(input_state_path) if isfile(join(input_state_path, filename))]
 
         # Delete the reference file from the list
-        filenames.remove('Basico_{}.csv'.format(folder))
+        #filenames.remove('Basico_{}.csv'.format(folder))
         # Read the reference file
         ref_data = pd.read_csv(join(input_state_path, 'Basico_{}.csv'.format(folder)), sep=';', encoding='latin')
         # Get only the columns regarding the codes
@@ -33,7 +33,7 @@ def code_data(input_path, output_path, wa_path, aggr):
         ref_data = ref_data[attr_interest].copy()
         # Rename columns to standardize
         ref_data.columns = ['Cod_Setor', 'Cod_Grande_Regiao', 'Nome_Grande_Regiao', 'Cod_UF',
-                            'Nome_UF ', 'Cod_Meso', 'Nome_Meso', 'Cod_Micro', 'Nome_Micro',
+                            'Nome_UF', 'Cod_Meso', 'Nome_Meso', 'Cod_Micro', 'Nome_Micro',
                             'Cod_RM', 'Nome_RM', 'Cod_Municipio', 'Nome_Municipio',
                             'Cod_Distrito', 'Nome_Distrito', 'Cod_Subdistrito',
                             'Nome_Subdistrito', 'Cod_Bairro', 'Nome_Bairro']
@@ -43,6 +43,11 @@ def code_data(input_path, output_path, wa_path, aggr):
             # Load raw data
             filepath = join(input_state_path, filename)
             raw_data = pd.read_csv(filepath, sep=";", encoding='latin')
+            raw_data.replace({',': '.'}, regex=True, inplace=True)
+            cols_to_delete = [col for col in raw_data.columns if 'V' not in col and col != 'Cod_setor']
+            raw_data.drop(cols_to_delete, axis=1, inplace=True)
+            if len(raw_data.columns) == 1:
+                raw_data = pd.read_csv(filepath, sep=",")
             raw_data.replace('X', 0, inplace=True)
             raw_data.fillna(0, inplace=True)
             for col in raw_data.columns:
@@ -55,25 +60,25 @@ def code_data(input_path, output_path, wa_path, aggr):
                 nothing = 1  # HueHue
             raw_data.dropna(axis=1, how='all', inplace=True)
             # Associate codes to data set
-            if len(ref_data) == len(ref_data):
-                raw_data.drop(['Cod_Setor'], axis=1, inplace=True)
-                merged_data = pd.concat([ref_data, raw_data], axis=1)
-            else:
-                raw_data['Cod_Setor'] = raw_data['Cod_Setor'].astype('int64')
-                merged_data = ref_data.merge(raw_data, on='Cod_Setor', how='left')
+            #if len(ref_data) == len(ref_data):
+            #    print('entrou')
+            #    exit()
+            #    raw_data.drop(['Cod_Setor'], axis=1, inplace=True)
+            #    merged_data = pd.concat([ref_data, raw_data], axis=1)
+            #else:
+            raw_data['Cod_Setor'] = raw_data['Cod_Setor'].astype('int64')
+            merged_data = ref_data.merge(raw_data, on='Cod_Setor', how='left')
 
             # Replace 'X' by Nan
             merged_data.replace('X', pd.NA, inplace=True)
+
             # New filename
             f_name = filename.split('_')[0] + '.csv'
             # Save the data as csv
-            merged_data = add_weighting_area_code(merged_data, wa_path)
 
+            merged_data = add_weighting_area_code(merged_data, wa_path)
             merged_data = aggregate_data(merged_data, aggr)
             merged_data = drop_unnamed_cols(merged_data)
-            cols = merged_data.columns.values[20:len(merged_data.columns)]
-            #merged_data[cols_to_normalize] = (merged_data[cols_to_normalize] - merged_data[cols_to_normalize].mean()) / merged_data[cols_to_normalize].std()
-            #merged_data[cols] = (merged_data[cols] - merged_data[cols].min()) / (merged_data[cols].max() - merged_data[cols].min())
             merged_data.to_csv(join(output_state_path, f_name), index=False, encoding='utf-8')
     logger.info('Data saved in:\n' + output_state_path)
     logger.info('Done!')
@@ -89,7 +94,7 @@ def add_weighting_area_code(data, path):
 def aggregate_data(data, aggr):
     map_func = {col: 'sum' for col in data.columns}
     code_cols = ['Cod_Setor', 'Cod_ap', 'Cod_Grande_Regiao', 'Nome_Grande_Regiao', 'Cod_UF',
-                 'Nome_UF ', 'Cod_Meso', 'Nome_Meso', 'Cod_Micro', 'Nome_Micro',
+                 'Nome_UF', 'Cod_Meso', 'Nome_Meso', 'Cod_Micro', 'Nome_Micro',
                  'Cod_RM', 'Nome_RM', 'Cod_Municipio', 'Nome_Municipio',
                  'Cod_Distrito', 'Nome_Distrito', 'Cod_Subdistrito',
                  'Nome_Subdistrito', 'Cod_Bairro', 'Nome_Bairro']
@@ -103,8 +108,10 @@ def aggregate_data(data, aggr):
     elif aggr == 'sub_dist':
         aggr_attr = 'Cod_Subdistrito'
         del map_func['Cod_Subdistrito']
-        # map_func['Code_Setor'] = lambda x: x.values.tolist()
-        # map_func['Code_ap'] = lambda x: x.values.tolist()
+        data = data.groupby(by=aggr_attr, as_index=False).agg(map_func)
+    elif aggr == 'city':
+        aggr_attr = 'Cod_Municipio'
+        del map_func['Cod_Municipio']
         data = data.groupby(by=aggr_attr, as_index=False).agg(map_func)
 
     return data

@@ -7,6 +7,7 @@ from os import environ
 from os.path import join
 from dotenv import load_dotenv, find_dotenv
 from libpysal.weights.contiguity import Queen
+from libpysal.weights import DistanceBand
 
 warnings.filterwarnings('ignore')
 
@@ -20,8 +21,8 @@ def generate_adjacency_matrix(input_filepath, output_filepath, region, aggr):
         aggr_attr = 'CD_GEOCODI'
     elif aggr == 'dist':
         aggr_attr = 'CD_GEOCODD'
-    elif aggr == 'municipality':
-        aggr_attr = 'CD_GEOCODM'
+    elif aggr == 'city':
+        aggr_attr = 'CD_GEOCMU'
     elif aggr == 'weighting_area':
         aggr_attr = 'Cod_ap'
     # Read meshblock
@@ -29,13 +30,15 @@ def generate_adjacency_matrix(input_filepath, output_filepath, region, aggr):
     # Set the aggregation attribute as index
     data.set_index(aggr_attr, inplace=True)
     # Calculate the adjacency matrix according to queen strategy
-    weights = Queen.from_dataframe(data)
+    # weights = Queen.from_dataframe(data)
+    # Calculate the adjacency matrix according to inverse distance strategy
+    weights = DistanceBand.from_dataframe(data, threshold=None, build_sp=False, binary=False)
     # Get the adjacency matryx
     w_matrix, ids = weights.full()
     # Associating the aggregating codes as indexes
     w_matrix = pd.DataFrame(w_matrix, index=data.index, columns=data.index)
     # Saving the adjacency matrix as csv
-    w_matrix.to_csv(join(output_filepath, aggr, 'adjacency_matrix.csv'))
+    w_matrix.to_csv(join(output_filepath, aggr, 'adjacency_matrix_inv.csv'))
 
 
 def run(region, year, aggr):
@@ -60,3 +63,5 @@ def run(region, year, aggr):
     # print('Census year: {}'.format(year))
 
     generate_adjacency_matrix(input_filepath, output_filepath, region, aggr)
+
+#run('Brazil', '2010', 'city')

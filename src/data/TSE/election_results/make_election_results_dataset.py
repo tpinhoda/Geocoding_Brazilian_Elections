@@ -112,7 +112,7 @@ if __name__ == '__main__':
     election_year = environ.get('ELECTION_YEAR')
     election_turn = environ.get('ELECTION_TURN')
     # Reading the filter parameters
-    params_path = join(project_dir, 'parameters', 'filtering_parameters_to_generate_ds.csv')
+    params_path = join(project_dir, 'parameters', 'single_param_set.csv')
     param_sets = pd.read_csv(params_path, converters={'candidates': literal_eval,
                                                       'city_limits': literal_eval,
                                                       'precision_categories': literal_eval})
@@ -122,9 +122,9 @@ if __name__ == '__main__':
     root_folder = environ.get('ROOT_DATA')
     raw_files = filenames = [filename for filename in listdir(root_folder) if isfile(join(root_folder, filename))]
 
-    # raw_path = make_folders(root_folder, region_name, election_year, election_turn, param_sets)
-    # for file in raw_files:
-    #    rename(join(root_folder, file), join(raw_path, file))
+    raw_path = make_folders(root_folder, region_name, election_year, election_turn, param_sets)
+    for file in raw_files:
+        rename(join(root_folder, file), join(raw_path, file))
 
     # Get election results path
     path = 'file:' + project_dir + environ.get("LOGS").format(region_name)

@@ -20,7 +20,7 @@ def dissolve_data(input_path, output_path, region, aggr, buffer=0):
         aggr_attr = 'CD_GEOCODI'
     elif aggr == 'dist':
         aggr_attr = 'CD_GEOCODD'
-    elif aggr == 'municipality':
+    elif aggr == 'city':
         aggr_attr = 'CD_GEOCODM'
     elif aggr == 'weighting_area':
         aggr_attr = 'Cod_ap'

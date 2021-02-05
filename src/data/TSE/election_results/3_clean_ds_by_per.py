@@ -64,13 +64,13 @@ def aggregate_data(data, aggr_level, candidates, output_path):
                 'CD_MUNICIPIO': 'first',
                 'COD_LOCALIDADE_IBGE': 'first',
                 'NR_ZONA': 'first',
-                'NR_LOCAL_VOTACAO': 'first',
+                'NR_LOCAL_VOTACAO': lambda x: len(set(x.values.tolist())),
                 'local_unico': 'first',
                 'NR_SECAO': lambda x: x.values.tolist(),
-                'rural': 'first',
+                'rural': 'sum',
                 'capital': 'first',
                 'city_limits': 'first',
-                'lev_dist': 'first',
+                'lev_dist': 'mean',
                 'QT_APTOS': 'sum',
                 'QT_COMPARECIMENTO': 'sum',
                 'QT_ABSTENCOES': 'sum',
@@ -83,7 +83,7 @@ def aggregate_data(data, aggr_level, candidates, output_path):
                 'precision': 'first'}
 
     # Change map function if city, zone or state
-    cols = ['NR_LOCAL_VOTACAO', 'local_unico', 'rural', 'capital', 'city_limits', 'lat', 'lon', 'geometry', 'precision']
+    cols = ['local_unico', 'city_limits', 'lat', 'lon', 'geometry', 'precision']
     if aggr_level == 'City' or aggr_level == 'Zona' or aggr_level == 'State':
         for col in cols:
             aggr_map[col] = lambda x: x.values.tolist()

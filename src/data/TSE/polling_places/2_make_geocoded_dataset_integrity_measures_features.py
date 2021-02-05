@@ -8,6 +8,10 @@ import Levenshtein
 from pathlib import Path
 from shapely.geometry import Point
 from tqdm import tqdm
+from os import environ
+from pathlib import Path
+from dotenv import find_dotenv, load_dotenv
+from os.path import join
 
 warnings.filterwarnings('ignore')
 
@@ -152,7 +156,7 @@ def generate_capitals_mark(df_polling_places):
     capitals = {'AC': 'RIO BRANCO',
                 'AP': 'MACAPÁ',
                 'AM': 'MANAUS',
-                'PA': 'Belém',
+                'PA': 'BELÉM',
                 'RO': 'PORTO VELHO',
                 'RR': 'BOA VISTA',
                 'TO': 'PALMAS',
@@ -175,7 +179,7 @@ def generate_capitals_mark(df_polling_places):
                 'RJ': 'RIO DE JANEIRO',
                 'PR': 'CURITIBA',
                 'RS': 'PORTO ALEGRE',
-                'SC': 'FLORINÓPOLIS'}
+                'SC': 'FLORIANÓPOLIS'}
     capitals_l = []
     logger.info('5.1 - Checking polling places in capitals')
     for index, row in tqdm(df_polling_places.iterrows(), leave=False):
@@ -191,15 +195,22 @@ def generate_capitals_mark(df_polling_places):
 
 if __name__ == '__main__':
     # Project path
-    project_dir = str(Path(__file__).resolve().parents[5])
-    print(project_dir)
+    project_dir = str(Path(__file__).resolve().parents[4])
+    # Find data.env automatically by walking up directories until it's found
+    dotenv_path = find_dotenv(filename='data.env')
+    # Load up the entries as environment variables
+    load_dotenv(dotenv_path)
+    data_dir = environ.get('ROOT_DATA')
+    region_name = environ.get('REGION_NAME')
+    census_year = environ.get('CENSUS_YEAR')
+    election_year = environ.get('ELECTION_YEAR')
+    aggr = environ.get('AGGREGATION_LEVEL')
     # Set data parammeters
-    election_year = '2018'
     buffers = [.03, .02, .01]
     # Set paths
-    data_filepath = project_dir + '/data/interim/Brazil/TSE/election_data/{}/polling_places/polling_places.csv'.format(election_year)
-    cities_maps_filepath = project_dir + '/data/raw/Brazil/IBGE/digital_mesh/city/BRMUE250GC_SIR.shp'
-    output_filepath = project_dir + '/data/processed/Brazil/TSE/election_data/{}/polling_places/polling_places.csv'.format(election_year)
+    data_filepath = join(data_dir, region_name, 'TSE', election_year, 'interim', 'polling_places', 'polling_places.csv')
+    cities_maps_filepath = join(data_dir, region_name, 'IBGE', 'meshblocks', census_year,'processed', aggr, 'shapefiles', region_name+'.shp' )
+    output_filepath = join(data_dir, region_name, 'TSE', election_year, 'processed', 'polling_places', 'polling_places.csv')
     # Read data
     df_polling_places = pd.read_csv(data_filepath)
     df_cities_maps = gpd.read_file(cities_maps_filepath, encoding='utf-8')
