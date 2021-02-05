@@ -1,7 +1,7 @@
-Election_Forensics
+Election Forensics - Pre-Processing Module
 ==============================
 
-Analysis of election data and identification of anomalous data
+Pre-processing of Brazilian electoral data and census data to be used in the merged module
 
 Project Organization
 ------------
