@@ -1,0 +1,37 @@
+{
+    "global": {
+        "region": "Brazil",
+        "org": "TSE",
+        "year": "2018",
+        "round": "2"
+    },
+    "results": {
+        "foldername": "results",
+        "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html",
+        "office": "Presidente",
+        "candidates": ["JAIR BOLSONARO", "HADDAD"],
+        "levenshtein_threshold": 0.8,
+        "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM"],
+        "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03"],
+        "data_name": "results"
+    },
+    "locations": {
+        "raw":{
+            "data_filename": "locations_by_sections.csv",
+            "meshblock_filename": "cities_meshblock.zip",
+            "url_data": "https://drive.google.com/uc?export=download&id=19kTCykQ4444xjkOj86sc0BdMMTpgkc3m",
+            "url_meshblock": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2018/Brasil/BR/br_municipios.zip"
+        },
+        "interim":{
+            "aggregation_level": "city",
+            "geocoding_api": "IBGE",
+            "save_at": 1000
+        }, 
+        "processed":{
+            "data_crs": {"init": "epsg:4674"},
+            "city_buffers": [0.01, 0.02, 0.03]
+        },
+        "data_name": "locations"
+    }
+   
+}

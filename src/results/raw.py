@@ -9,16 +9,17 @@ from bs4 import BeautifulSoup
 from os.path import join
 from tqdm import tqdm
 
+
 @dataclass
 class Raw(Election):
     """Object containing information to generate raw election data
     Attributes:
         url: The url to collect the raw data
         html: the html page where the raw data can be downloaded
-        links: list of links to download raw data 
+        links: list of links to download raw data
     """
 
-    url: str
+    url: str = None
     html: str = None
     links: List[str] = field(default_factory=list)
 
@@ -85,12 +86,3 @@ class Raw(Election):
         self._unzip_raw_data()
         self._remove_zip_files()
         self._rename_raw_data()
-
-
-
-root = "H:\Google Drive\Doutorado\EFD\data"
-url_data = "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html"
-election_results = Raw("Brazil", "TSE", "2018", "2", "results", "Raw", root, root, "raw", url_data)
-election_results.generate_raw_data()
-#election_raw = election_results.Raw(url_data)
-#election_raw.generate_raw_data()

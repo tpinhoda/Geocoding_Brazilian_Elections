@@ -3,38 +3,51 @@ import logging
 from dataclasses import dataclass
 from os import mkdir, listdir, remove, rename
 from os.path import join, isfile
+from abc import ABC, abstractmethod
 from typing import List
 
 
 @dataclass
-class Election:
-    """Represents an election dataset
-    
-    This class is responsible to organize in folds the election datasets.
-    Attributes:
-        region      : Name of the region described by the dataset
-        org         : Name of the orgarnization where the data was collected
-        year        : Election year
-        round       : Election round
-        data_type   : Type of the data {results, polling_place}
-        logger_name : Name of the looger to display in the logging
-        root_path   : Root path
-        cur_dir     : Current directory
-        data_state  : Sate of the data {raw, interim, processed}
+class Election(ABC):
+    """Represents an Brazilian election.
+
+    This class is responsible to organize in folders the election datasets.
+
+    Attributes
+    ----------
+        region : str
+            Name of the region described by the dataset
+        org  : str
+            Name of the orgarnization where the data was collected
+        year : str
+            Election year
+        round : str
+            Election round
+        root_path : str
+            Root path
+        cur_dir: str
+            Currenti working directory
+        logger_name: str
+            Name of the logger
+
     """
 
     region: str
     org: str
     year: str
     round: str
-    data_type: str
-    logger_name: str
     root_path: str
-    cur_dir: str
-    data_state: str
+    data_name: str
+    cur_dir: str = None
+    logger_name: str = None
+    state: str = None
 
+    def logger_info(self, message: str):
+        """Print longger info message"""
+        logger = logging.getLogger(self.logger_name)
+        logger.info(message)
 
-    def _create_folder(self, folder_name: str) -> None:
+    def _mkdir(self, folder_name: str) -> None:
         """Creates a folder at current path"""
         logger = logging.getLogger(self.logger_name)
         self.cur_dir = join(self.cur_dir, folder_name)
@@ -44,19 +57,47 @@ class Election:
         except FileExistsError:
             logger.info(f"Entering folder: /{folder_name}")
 
+    def _make_initial_folders(self) -> None:
+        """Creates the initial folds to store the dataset"""
+        self.logger_info(f"Root: {self.root_path}")
+        self.cur_dir = self.root_path
+        self._mkdir(folder_name=self.region)
+        self._mkdir(folder_name=self.org)
+        self._mkdir(folder_name=self.year)
+        self._mkdir(folder_name=f"round_{self.round}")
+        self._mkdir(folder_name=self.state)
+
+    def _get_process_folder_path(self, state: str) -> str:
+        """Returns the data state path"""
+        return join(
+            self.root_path,
+            self.region,
+            self.org,
+            self.year,
+            "round_" + self.round,
+            state,
+        )
+
     def _get_initial_folders_path(self) -> str:
         """Returns the initial folders path"""
         return join(self.root_path, self.region, self.org)
-    
+
     def _get_election_folders_path(self) -> str:
         """Returns the election folders path"""
-        return join(self.root_path, self.region, self.org, 
-                    self.year, 'round_'+ self.round )
-    
+        return join(
+            self.root_path, self.region, self.org, self.year, "round_" + self.round
+        )
+
     def _get_state_folders_path(self, state: str) -> str:
         """Returns the data state path"""
-        return join(self.root_path, self.region, self.org, 
-                    self.year, 'round_'+ self.round, state)
+        return join(
+            self.root_path,
+            self.region,
+            self.org,
+            self.year,
+            "round_" + self.round,
+            state,
+        )
 
     def _get_files_in_cur_dir(self) -> List[str]:
         """Returns a list of filesnames in the current directory"""
@@ -73,32 +114,19 @@ class Election:
     def _rename_file_from_cur_dir(self, old_filename: str, new_filename: str) -> None:
         """Rename a file from the current dir"""
         rename(join(self.cur_dir, old_filename), join(self.cur_dir, new_filename))
-    
-    def _make_initial_folders(self) -> None:
-        """Creates the initial folds to store the dataset"""
-        logger = logging.getLogger(self.logger_name)
-        logger.info(f"Root: {self.root_path}")
-        self._create_folder(folder_name=self.region)
-        self._create_folder(folder_name=self.org)
-    
-    def _make_election_folders(self) -> None:
-        """Create the election folds considering the year and round"""
-        self._create_folder(self.year)
-        self._create_folder("round_" + self.round)
 
-    def _make_data_state_folder(self) -> None:
-        """Create folder regarding the data state {raw, interim, processed}"""
-        self._create_folder(folder_name=self.data_state)
+    @abstractmethod
+    def init_logger_name():
+        pass
 
-    def _make_data_type_folder(self) -> None:
-        """Create the type of data fold {raw, interim, processed}"""
-        self._create_folder(self.data_type)
+    @abstractmethod
+    def init_state():
+        pass
 
-    def _initialize_folders(self) -> None:
-        """Create all initial folds concerning the election data"""
-        self._make_initial_folders()
-        self._make_election_folders()
-        self._make_data_state_folder()
-        self._make_data_type_folder()
+    @abstractmethod
+    def _make_folders():
+        pass
 
-
+    @abstractmethod
+    def run():
+        pass
