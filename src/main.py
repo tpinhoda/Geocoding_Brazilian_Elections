@@ -1,21 +1,26 @@
 """Main script"""
-import coloredlogs, logging
-
-coloredlogs.install()
-log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-from rich.traceback import install
-
-install()
-
 import os
 import json
-from src.pipeline import Pipeline
-from dotenv import load_dotenv
+import logging
 from pathlib import Path
 from typing import Dict
+from dotenv import load_dotenv
+from coloredlogs import install as coloredlogs_install
+from rich.traceback import install as rich_install
+from src.pipeline import Pipeline
 
+def initialize_coloredlog():
+    """Install the colored log package"""
+    coloredlogs_install()
+
+def initialize_logging():
+    """Initialize the format of the logger messages"""
+    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+def initialize_rich():
+    """Install the rich tracerback"""
+    rich_install()
 
 def load_env_variables(project_dir) -> Dict[str, str]:
     """Loads enviromental variables in the .env file."""
@@ -29,12 +34,16 @@ def load_env_variables(project_dir) -> Dict[str, str]:
 
 def load_json(params_path):
     """Load json file."""
-    with open(params_path) as f:
-        return json.load(f)
+    with open(params_path) as file:
+        return json.load(file)
 
 
-if __name__ == "__main__":
-    # Project path
+def main():
+    """Main function"""
+    initialize_coloredlog()
+    initialize_rich()
+    initialize_logging()
+     # Project path
     project_dir = str(Path(__file__).resolve().parents[1])
     # Load enviromental variables
     env_var = load_env_variables(project_dir)
@@ -47,3 +56,6 @@ if __name__ == "__main__":
     # Creates the processing pipeline
     pipeline = Pipeline("locations", params, switchers["locations"])
     pipeline.run()
+
+if __name__ == "__main__":
+    main()
