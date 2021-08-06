@@ -1,3 +1,4 @@
+"""Main script"""
 import coloredlogs, logging
 
 coloredlogs.install()
