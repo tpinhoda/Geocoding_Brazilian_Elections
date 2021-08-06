@@ -16,22 +16,17 @@
         "data_name": "results"
     },
     "locations": {
-        "raw":{
-            "data_filename": "locations_by_sections.csv",
-            "meshblock_filename": "cities_meshblock.zip",
-            "url_data": "https://drive.google.com/uc?export=download&id=19kTCykQ4444xjkOj86sc0BdMMTpgkc3m",
-            "url_meshblock": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2018/Brasil/BR/br_municipios.zip"
-        },
-        "interim":{
-            "aggregation_level": "city",
-            "geocoding_api": "IBGE",
-            "save_at": 1000
-        }, 
-        "processed":{
-            "data_crs": {"init": "epsg:4674"},
-            "city_buffers": [0.01, 0.02, 0.03]
-        },
-        "data_name": "locations"
+        "data_name": "locations",
+        "url_data": "https://drive.google.com/uc?export=download&id=19kTCykQ4444xjkOj86sc0BdMMTpgkc3m",
+        "url_meshblock": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2018/Brasil/BR/br_municipios.zip",
+        "data_filename": "locations_by_sections.csv",
+        "meshblock_filename": "cities_meshblock.zip",
+        "geocoding_api": "IBGE",
+        "save_at": 1000,
+        "meshblock_crs": 4674,
+        "meshblock_col_id": "CD_GEOCMU",
+        "aggregation_level": "city",
+        "city_buffers": [0.01, 0.02, 0.03]
     }
    
 }

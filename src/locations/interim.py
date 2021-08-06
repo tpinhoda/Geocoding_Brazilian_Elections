@@ -9,7 +9,42 @@ from src.election import Election
 from typing import Optional
 from tqdm import tqdm
 
+MAP_COL_DTYPES = {
+                    "SGL_UF": "str",
+                    "COD_LOCALIDADE_IBGE": "str",
+                    "LOCALIDADE_LOCAL_VOTACAO": "str",
+                    "ZONA": "str",
+                    "BAIRRO_ZONA_SEDE": "str",
+                    "LATITUDE_ZONA": "float",
+                    "LONGITUDE_ZONA": "float",
+                    "NUM_LOCAL": "str",
+                    "SITUACAO_LOCAL": "str",
+                    "TIPO_LOCAL": "str",
+                    "LOCAL_VOTACAO": "str",
+                    "ENDERECO": "str",
+                    "BAIRRO_LOCAL_VOT": "str",
+                    "CEP": "str",
+                    "LATITUDE_LOCAL": "float",
+                    "LONGITUDE_LOCAL": "float",
+                    "NUM_SECAO": "str",
+                    "SECAO_AGREGADORA": "str",
+                    "SECAO_AGREGADA": "str",
+                }
 
+MAP_COL_RENAME = {
+                    "SGL_UF": "[GEO]_UF",
+                    "COD_LOCALIDADE_IBGE": "[GEO]_ID_IBGE_CITY",
+                    "LOCALIDADE_LOCAL_VOTACAO": "[GEO]_CITY",
+                    "ZONA": "[GEO]_ID_POLLING_ZONE",
+                    "BAIRRO_ZONA_SEDE": "[GEO]_POLLING_ZONE",
+                    "NUM_LOCAL": "[GEO]_ID_POLLING_PLACE",
+                    "LOCAL_VOTACAO": "[GEO]_POLLING_PLACE",
+                    "BAIRRO_LOCAL_VOT": "[GEO]_POLLING_PLACE_NEIGHBORHOOD",
+                    "ENDERECO": "[GEO]_POLLING_PLACE_ADDRESS",
+                    "CEP": "[GEO]_CEP_CODE",
+                    "LATITUDE_LOCAL": "[GEO]_LATITUDE",
+                    "LONGITUDE_LOCAL": "[GEO]_LONGITUDE",
+                }
 @dataclass
 class Interim(Election):
     """Represents the Brazilian polling places in interim state of processing.
@@ -32,6 +67,8 @@ class Interim(Election):
     geocoding_api: str = None
     api_key: Optional[str] = field(default_factory=str)
     meshblock_filename: Optional[str] = field(default_factory=str)
+    meshblock_crs: str = None
+    meshblock_col_id: Optional[str] = field(default_factory=str)
     save_at: int = 10
     data_filename: str = None
     __data: pd.DataFrame = field(default_factory=pd.DataFrame)
@@ -51,47 +88,6 @@ class Interim(Election):
         self._mkdir(self.aggregation_level)
 
     # Pre-Processing functions
-    def _init_columns_type(self):
-        """Initialize the columns types"""
-        return {
-            "SGL_UF": "str",
-            "COD_LOCALIDADE_IBGE": "str",
-            "LOCALIDADE_LOCAL_VOTACAO": "str",
-            "ZONA": "str",
-            "BAIRRO_ZONA_SEDE": "str",
-            "LATITUDE_ZONA": "float",
-            "LONGITUDE_ZONA": "float",
-            "NUM_LOCAL": "str",
-            "SITUACAO_LOCAL": "str",
-            "TIPO_LOCAL": "str",
-            "LOCAL_VOTACAO": "str",
-            "ENDERECO": "str",
-            "BAIRRO_LOCAL_VOT": "str",
-            "CEP": "str",
-            "LATITUDE_LOCAL": "float",
-            "LONGITUDE_LOCAL": "float",
-            "NUM_SECAO": "str",
-            "SECAO_AGREGADORA": "str",
-            "SECAO_AGREGADA": "str",
-        }
-
-    def _set_columns_name(self):
-        """Set the new columns names"""
-        return {
-            "SGL_UF": "[GEO]_UF",
-            "COD_LOCALIDADE_IBGE": "[GEO]_ID_IBGE_CITY",
-            "LOCALIDADE_LOCAL_VOTACAO": "[GEO]_CITY",
-            "ZONA": "[GEO]_ID_POLLING_ZONE",
-            "BAIRRO_ZONA_SEDE": "[GEO]_POLLING_ZONE",
-            "NUM_LOCAL": "[GEO]_ID_POLLING_PLACE",
-            "LOCAL_VOTACAO": "[GEO]_POLLING_PLACE",
-            "BAIRRO_LOCAL_VOT": "[GEO]_POLLING_PLACE_NEIGHBORHOOD",
-            "ENDERECO": "[GEO]_POLLING_PLACE_ADDRESS",
-            "CEP": "[GEO]_CEP_CODE",
-            "LATITUDE_LOCAL": "[GEO]_LATITUDE",
-            "LONGITUDE_LOCAL": "[GEO]_LONGITUDE",
-        }
-
     def _read_csv(self):
         """Read the polling places.csv file and returns a pandas dataframe"""
         self.logger_info("Reading data.")
@@ -100,16 +96,14 @@ class Interim(Election):
             self.data_name,
             self.data_filename,
         )
-        dtypes = self._init_columns_type()
         self.__data = pd.read_csv(
-            filepath, encoding="Latin5", sep=";", decimal=",", dtype=dtypes
+            filepath, encoding="Latin5", sep=";", decimal=",", dtype=MAP_COL_DTYPES
         )
 
-    def _filter_and_rename_cols(self):
+    def _rename_cols(self):
         """Filter and rename only relevant columns"""
-        relevant_cols = self._set_columns_name()
-        self.__data.rename(columns=relevant_cols, inplace=True)
-        self.__data = self.__data[relevant_cols.values()]
+        self.__data.rename(columns=MAP_COL_RENAME, inplace=True)
+        self.__data = self.__data[MAP_COL_RENAME.values()]
 
     def _clean_addresses(self):
         """Remove unecessary information from addrresses"""
@@ -144,14 +138,21 @@ class Interim(Election):
     def _create_precision_attribute(self):
         """Create the precision attribute regarding the latitude and longitude"""
         self.__data["[GEO]_PRECISION"] = np.where(
-            np.isnan(self.__data["[GEO]_LATITUDE"]), "NO_VALUE", "TSE"
+            np.isnan(self.__data["[GEO]_LATITUDE"]), None, "TSE"
         )
 
-    def _create_fetched_attribute(self):
+    def _create_fetched_address_attribute(self):
         """Create the fetched address regarding the latitude and longitude"""
         self.__data["[GEO]_FETCHED_ADDRESS"] = np.where(
             self.__data["[GEO]_PRECISION"] != "TSE",
-            "NO_VALUE",
+            None,
+            self.__data["[GEO]_CLEAN_ADDRESS"],
+        )
+    def _create_query_address_attribute(self):
+        """Create the query address regarding the latitude and longitude"""
+        self.__data["[GEO]_QUERY_ADDRESS"] = np.where(
+            self.__data["[GEO]_PRECISION"] != "TSE",
+            None,
             self.__data["[GEO]_CLEAN_ADDRESS"],
         )
 
@@ -161,14 +162,15 @@ class Interim(Election):
 
     def _preprocessing_data(self):
         """Pre-processing of the polling places"""
-        self.logger_info("Pre-Processing data.")
         self._read_csv()
-        self._filter_and_rename_cols()
+        self.logger_info("Pre-Processing data.")
+        self._rename_cols()
         self._clean_addresses()
         self._remove_foreign_places()
         self._aggregate_data()
         self._create_precision_attribute()
-        self._create_fetched_attribute()
+        self._create_fetched_address_attribute()
+        self._create_query_address_attribute()
 
     def _generate_address(self, row):
         """Generate the address based on the aggregation level"""
@@ -195,13 +197,14 @@ class Interim(Election):
         for count_rows, (index, row) in tqdm(
             enumerate(self.__data.iterrows()), total=len(self.__data), desc="Geocoding"
         ):
-            if row["[GEO]_PRECISION"] == "NO_VALUE":
+            if not row["[GEO]_PRECISION"]:
                 try:
                     components = {
                         "country": self.region,
                         "administrative_area": row["[GEO]_CITY"],
                     }
                     address = self._generate_address(row)
+                    self.__data.loc[index, "[GEO]_QUERY_ADDRESS"] = address
                     result = gmaps.geocode(
                         language="pt-BR", address=address, components=components
                     )
@@ -230,17 +233,18 @@ class Interim(Election):
         for count_rows, (index, row) in tqdm(
             enumerate(self.__data.iterrows()), total=len(self.__data), desc="Geocoding"
         ):
-            if row["[GEO]_PRECISION"] == "NO_VALUE":
+            if not row["[GEO]_PRECISION"]:
                 try:
                     address = self._generate_address(row)
+                    self.__data.loc[index, "[GEO]_QUERY_ADDRESS"] = address
                     result = geolocator.geocode(address)
                     if not result:
                         continue
-
                     self.__data.loc[index, "[GEO]_LATITUDE"] = result.latitude
                     self.__data.loc[index, "[GEO]_LONGITUDE"] = result.longitude
                     self.__data.loc[index, "[GEO]_PRECISION"] = "OSM"
                     self.__data.loc[index, "[GEO]_FETCHED_ADDRESS"] = result.address
+                    
                 except Exception as e:
                     print(e)
             if not (count_rows + 1) % self.save_at:
@@ -253,15 +257,19 @@ class Interim(Election):
                                                                 filename,
                                                                 f"{filename}.shp")
         meshblock = gpd.read_file(meshblock_filepath)
-        meshblock['Y'] = meshblock.centroid.y
-        meshblock['X'] = meshblock.centroid.x
+        meshblock['geometry'] = meshblock['geometry'].to_crs(crs=self.meshblock_crs)
+        meshblock['Y'] = meshblock.to_crs('+proj=cea').centroid.to_crs(meshblock.crs).y
+        meshblock['X'] = meshblock.to_crs('+proj=cea').centroid.to_crs(meshblock.crs).x
+
         self.__data = self.__data.merge(meshblock[['CD_GEOCMU', 'X', 'Y']], 
                                                    left_on='[GEO]_ID_IBGE_CITY',
-                                                   right_on='CD_GEOCMU',
+                                                   right_on=self.meshblock_col_id,
                                                    how='left')
+        self.__data["[GEO]_QUERY_ADDRESS"] = self.__data["[GEO]_CLEAN_ADDRESS"]
         self.__data["[GEO]_LONGITUDE"] = self.__data["X"]
         self.__data["[GEO]_LATITUDE"] = self.__data["Y"]
-        self.__data.drop(["CD_GEOCMU", "X", "Y"], axis=1, inplace=True)
+        self.__data["[GEO]_FETCHED_ADDRESS"] = self.__data["[GEO]_CLEAN_ADDRESS"]
+        self.__data.drop([self.meshblock_col_id, "X", "Y"], axis=1, inplace=True)
         
         self._save_data("locations_IBGE.csv")
         
@@ -282,7 +290,7 @@ class Interim(Election):
         """Generates interim __data regarding the polling places"""
         self.init_logger_name()
         self.init_state()
-        self.logger_info("Generating Interim data.")
+        self.logger_info("Generating interim data.")
         self._make_folders()
         self._preprocessing_data()
         self._geocode_data()

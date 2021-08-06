@@ -96,6 +96,7 @@ class Raw(Election):
         """Generate election raw data"""
         self.init_logger_name()
         self.init_state()
+        self.logger_info("Generating raw data.")
         self._make_folders()
         self._download_location_raw_data()
         self._get_city_meshblock_file()

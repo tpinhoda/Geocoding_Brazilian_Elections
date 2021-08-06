@@ -5,7 +5,6 @@ log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 from rich.traceback import install
-
 install()
 
 import os
@@ -40,7 +39,7 @@ if __name__ == "__main__":
     # Load paramenters
     params = load_json(os.path.join(project_dir, "parameters", "parameters.json"))
     params["global"]["root_path"] = env_var["root_path"]
-    params["locations"]["interim"]["api_key"] = env_var["api_key"]
+    params["locations"]["api_key"] = env_var["api_key"]
     # Load switchers
     switchers = load_json(os.path.join(project_dir, "parameters", "switchers.json"))
     # Creates the processing pipeline

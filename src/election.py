@@ -32,12 +32,12 @@ class Election(ABC):
 
     """
 
-    region: str
-    org: str
-    year: str
-    round: str
-    root_path: str
-    data_name: str
+    region: str = None
+    org: str = None
+    year: str = None
+    round: str = None
+    root_path: str = None
+    data_name: str = None
     cur_dir: str = None
     logger_name: str = None
     state: str = None
@@ -49,17 +49,19 @@ class Election(ABC):
 
     def _mkdir(self, folder_name: str) -> None:
         """Creates a folder at current path"""
-        logger = logging.getLogger(self.logger_name)
+        # logger = logging.getLogger(self.logger_name)
         self.cur_dir = join(self.cur_dir, folder_name)
         try:
             mkdir(self.cur_dir)
-            logger.info(f"Creating folder: /{folder_name}")
+            # logger.info(f"Creating folder: /{folder_name}")
         except FileExistsError:
-            logger.info(f"Entering folder: /{folder_name}")
+            pass
+            # logger.info(f"Entering folder: /{folder_name}")
 
     def _make_initial_folders(self) -> None:
         """Creates the initial folds to store the dataset"""
         self.logger_info(f"Root: {self.root_path}")
+        self.logger_info("Creating or Entering dataset folders.")
         self.cur_dir = self.root_path
         self._mkdir(folder_name=self.region)
         self._mkdir(folder_name=self.org)
@@ -113,20 +115,23 @@ class Election(ABC):
 
     def _rename_file_from_cur_dir(self, old_filename: str, new_filename: str) -> None:
         """Rename a file from the current dir"""
-        rename(join(self.cur_dir, old_filename), join(self.cur_dir, new_filename))
+        try:
+            rename(join(self.cur_dir, old_filename), join(self.cur_dir, new_filename))
+        except FileExistsError:
+            pass
 
     @abstractmethod
-    def init_logger_name():
+    def init_logger_name(self):
         pass
 
     @abstractmethod
-    def init_state():
+    def init_state(self):
         pass
 
     @abstractmethod
-    def _make_folders():
+    def _make_folders(self):
         pass
 
     @abstractmethod
-    def run():
+    def run(self):
         pass
