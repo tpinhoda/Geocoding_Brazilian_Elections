@@ -5,6 +5,7 @@ log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 from rich.traceback import install
+
 install()
 
 import os

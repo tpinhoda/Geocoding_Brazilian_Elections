@@ -1,50 +1,53 @@
+"""Generates interim data for locations."""
+from os.path import join
+from dataclasses import dataclass, field
+from typing import Optional
 import pandas as pd
 import geopandas as gpd
 import numpy as np
 import googlemaps
-from geopy.geocoders import Nominatim
-from os.path import join
-from dataclasses import dataclass, field
-from src.election import Election
-from typing import Optional
 from tqdm import tqdm
+from geopy.geocoders import Nominatim
+from src.election import Election
 
 MAP_COL_DTYPES = {
-                    "SGL_UF": "str",
-                    "COD_LOCALIDADE_IBGE": "str",
-                    "LOCALIDADE_LOCAL_VOTACAO": "str",
-                    "ZONA": "str",
-                    "BAIRRO_ZONA_SEDE": "str",
-                    "LATITUDE_ZONA": "float",
-                    "LONGITUDE_ZONA": "float",
-                    "NUM_LOCAL": "str",
-                    "SITUACAO_LOCAL": "str",
-                    "TIPO_LOCAL": "str",
-                    "LOCAL_VOTACAO": "str",
-                    "ENDERECO": "str",
-                    "BAIRRO_LOCAL_VOT": "str",
-                    "CEP": "str",
-                    "LATITUDE_LOCAL": "float",
-                    "LONGITUDE_LOCAL": "float",
-                    "NUM_SECAO": "str",
-                    "SECAO_AGREGADORA": "str",
-                    "SECAO_AGREGADA": "str",
-                }
+    "SGL_UF": "str",
+    "COD_LOCALIDADE_IBGE": "str",
+    "LOCALIDADE_LOCAL_VOTACAO": "str",
+    "ZONA": "str",
+    "BAIRRO_ZONA_SEDE": "str",
+    "LATITUDE_ZONA": "float",
+    "LONGITUDE_ZONA": "float",
+    "NUM_LOCAL": "str",
+    "SITUACAO_LOCAL": "str",
+    "TIPO_LOCAL": "str",
+    "LOCAL_VOTACAO": "str",
+    "ENDERECO": "str",
+    "BAIRRO_LOCAL_VOT": "str",
+    "CEP": "str",
+    "LATITUDE_LOCAL": "float",
+    "LONGITUDE_LOCAL": "float",
+    "NUM_SECAO": "str",
+    "SECAO_AGREGADORA": "str",
+    "SECAO_AGREGADA": "str",
+}
 
 MAP_COL_RENAME = {
-                    "SGL_UF": "[GEO]_UF",
-                    "COD_LOCALIDADE_IBGE": "[GEO]_ID_IBGE_CITY",
-                    "LOCALIDADE_LOCAL_VOTACAO": "[GEO]_CITY",
-                    "ZONA": "[GEO]_ID_POLLING_ZONE",
-                    "BAIRRO_ZONA_SEDE": "[GEO]_POLLING_ZONE",
-                    "NUM_LOCAL": "[GEO]_ID_POLLING_PLACE",
-                    "LOCAL_VOTACAO": "[GEO]_POLLING_PLACE",
-                    "BAIRRO_LOCAL_VOT": "[GEO]_POLLING_PLACE_NEIGHBORHOOD",
-                    "ENDERECO": "[GEO]_POLLING_PLACE_ADDRESS",
-                    "CEP": "[GEO]_CEP_CODE",
-                    "LATITUDE_LOCAL": "[GEO]_LATITUDE",
-                    "LONGITUDE_LOCAL": "[GEO]_LONGITUDE",
-                }
+    "SGL_UF": "[GEO]_UF",
+    "COD_LOCALIDADE_IBGE": "[GEO]_ID_IBGE_CITY",
+    "LOCALIDADE_LOCAL_VOTACAO": "[GEO]_CITY",
+    "ZONA": "[GEO]_ID_POLLING_ZONE",
+    "BAIRRO_ZONA_SEDE": "[GEO]_POLLING_ZONE",
+    "NUM_LOCAL": "[GEO]_ID_POLLING_PLACE",
+    "LOCAL_VOTACAO": "[GEO]_POLLING_PLACE",
+    "BAIRRO_LOCAL_VOT": "[GEO]_POLLING_PLACE_NEIGHBORHOOD",
+    "ENDERECO": "[GEO]_POLLING_PLACE_ADDRESS",
+    "CEP": "[GEO]_CEP_CODE",
+    "LATITUDE_LOCAL": "[GEO]_LATITUDE",
+    "LONGITUDE_LOCAL": "[GEO]_LONGITUDE",
+}
+
+
 @dataclass
 class Interim(Election):
     """Represents the Brazilian polling places in interim state of processing.
@@ -114,6 +117,10 @@ class Interim(Election):
             "[GEO]_POLLING_PLACE_ADDRESS"
         ].str.replace(" - ZONA RURAL", "")
 
+    @staticmethod
+    def _concat_cols(row):
+        return "".join(row)
+
     def _aggregate_data(self):
         """Generate a unique id for each polling place"""
         id_template = {
@@ -127,7 +134,7 @@ class Interim(Election):
             "city": ["[GEO]_ID_IBGE_CITY"],
         }
         self.__data["ID"] = self.__data[id_template[self.aggregation_level]].apply(
-            lambda x: "".join(x), axis=1
+           self._concat_cols, axis=1
         )
         self.__data = self.__data.groupby(by="ID").agg("first")
 
@@ -148,6 +155,7 @@ class Interim(Election):
             None,
             self.__data["[GEO]_CLEAN_ADDRESS"],
         )
+
     def _create_query_address_attribute(self):
         """Create the query address regarding the latitude and longitude"""
         self.__data["[GEO]_QUERY_ADDRESS"] = np.where(
@@ -222,8 +230,8 @@ class Interim(Election):
                     self.__data.loc[index, "[GEO]_FETCHED_ADDRESS"] = result[0][
                         "formatted_address"
                     ]
-                except Exception as e:
-                    print(e)
+                except ConnectionError:
+                    pass
             if not (count_rows + 1) % self.save_at:
                 self._save_data("locations_GMAPS.csv")
 
@@ -244,37 +252,39 @@ class Interim(Election):
                     self.__data.loc[index, "[GEO]_LONGITUDE"] = result.longitude
                     self.__data.loc[index, "[GEO]_PRECISION"] = "OSM"
                     self.__data.loc[index, "[GEO]_FETCHED_ADDRESS"] = result.address
-                    
-                except Exception as e:
-                    print(e)
+
+                except ConnectionError:
+                    pass
             if not (count_rows + 1) % self.save_at:
                 self._save_data("locations_OSM.csv")
-    
+
     def _ibge_geocoding(self):
         filename = self.meshblock_filename.split(".")[0]
-        meshblock_filepath = join(self._get_process_folder_path(state='raw'),
-                                                                self.data_name,
-                                                                filename,
-                                                                f"{filename}.shp")
+        meshblock_filepath = join(
+            self._get_process_folder_path(state="raw"),
+            self.data_name,
+            filename,
+            f"{filename}.shp",
+        )
         meshblock = gpd.read_file(meshblock_filepath)
-        meshblock['geometry'] = meshblock['geometry'].to_crs(crs=self.meshblock_crs)
-        meshblock['Y'] = meshblock.to_crs('+proj=cea').centroid.to_crs(meshblock.crs).y
-        meshblock['X'] = meshblock.to_crs('+proj=cea').centroid.to_crs(meshblock.crs).x
+        meshblock["geometry"] = meshblock["geometry"].to_crs(crs=self.meshblock_crs)
+        meshblock["Y"] = meshblock.to_crs("+proj=cea").centroid.to_crs(meshblock.crs).y
+        meshblock["X"] = meshblock.to_crs("+proj=cea").centroid.to_crs(meshblock.crs).x
 
-        self.__data = self.__data.merge(meshblock[['CD_GEOCMU', 'X', 'Y']], 
-                                                   left_on='[GEO]_ID_IBGE_CITY',
-                                                   right_on=self.meshblock_col_id,
-                                                   how='left')
+        self.__data = self.__data.merge(
+            meshblock[["CD_GEOCMU", "X", "Y"]],
+            left_on="[GEO]_ID_IBGE_CITY",
+            right_on=self.meshblock_col_id,
+            how="left",
+        )
         self.__data["[GEO]_QUERY_ADDRESS"] = self.__data["[GEO]_CLEAN_ADDRESS"]
         self.__data["[GEO]_LONGITUDE"] = self.__data["X"]
         self.__data["[GEO]_LATITUDE"] = self.__data["Y"]
         self.__data["[GEO]_FETCHED_ADDRESS"] = self.__data["[GEO]_CLEAN_ADDRESS"]
+        self.__data["[GEO]_PRECISION"] = self.geocoding_api
         self.__data.drop([self.meshblock_col_id, "X", "Y"], axis=1, inplace=True)
-        
+
         self._save_data("locations_IBGE.csv")
-        
-        
-        
 
     def _geocode_data(self):
         """Run geocode function depending on the api chosen."""
@@ -282,7 +292,7 @@ class Interim(Election):
         api_func = {
             "GMAPS": self._googlemaps_geocoding,
             "OSM": self._openstreet_geocoding,
-            "IBGE": self._ibge_geocoding
+            "IBGE": self._ibge_geocoding,
         }
         return api_func.get(self.geocoding_api)()
 

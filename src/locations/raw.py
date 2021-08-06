@@ -1,7 +1,8 @@
-import zipfile
+"""Generates raw data for locations."""
 from dataclasses import dataclass
 from os.path import join
 from urllib.request import urlretrieve
+import zipfile
 from src.election import Election
 
 

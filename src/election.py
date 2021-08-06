@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Abstract class to represent Brazilian election."""
 import logging
 from dataclasses import dataclass
 from os import mkdir, listdir, remove, rename
@@ -122,16 +123,16 @@ class Election(ABC):
 
     @abstractmethod
     def init_logger_name(self):
-        pass
+        """Initialize logger name"""
 
     @abstractmethod
     def init_state(self):
-        pass
+        """Initialize state process"""
 
     @abstractmethod
     def _make_folders(self):
-        pass
+        """Make dataset folders"""
 
     @abstractmethod
     def run(self):
-        pass
+        """Run the process"""
