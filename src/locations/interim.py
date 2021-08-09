@@ -58,7 +58,7 @@ class Interim(Election):
     ----------
         aggregation_level: str
             The level of aggregation [polling_places:, neighborhood, city]
-        geocoding_service: str
+        geocoding_api: str
             The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
         api_key: Optional[str]
             The key for api that need key

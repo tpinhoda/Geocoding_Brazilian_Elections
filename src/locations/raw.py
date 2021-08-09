@@ -109,5 +109,5 @@ class Raw(Election):
             self._empty_folder_run()
         else:
             self.logger_warning(
-                "There are files in the working directory, the process only runs on empty folders!"
+                "Non empty directory, the process only runs on empty folders!"
             )

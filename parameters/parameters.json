@@ -4,7 +4,8 @@
         "org": "TSE",
         "year": "2018",
         "round": "2",
-        "aggregation_level": "city"
+        "aggregation_level": "city",
+        "geocoding_api": "IBGE"
     },
     "results": {
         "data_name": "results",
@@ -21,7 +22,6 @@
         "url_meshblock": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2018/Brasil/BR/br_municipios.zip",
         "data_filename": "locations_by_sections.csv",
         "meshblock_filename": "cities_meshblock.zip",
-        "geocoding_api": "IBGE",
         "save_at": 1000,
         "meshblock_crs": 4674,
         "meshblock_col_id": "CD_GEOCMU",

@@ -1,8 +1,7 @@
+"""Generates interim results data"""
 from os.path import join
 from typing import Dict, List
 from dataclasses import dataclass, field
-import re
-from src.locations.interim import MAP_COL_RENAME
 from tqdm import tqdm
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
@@ -30,8 +29,22 @@ MAP_COL_RENAME = {
 
 @dataclass
 class Interim(Election):
+    """Represents the Brazilian election results in interim state of processing.
+
+    This object pre-processes the Brazilian election results.
+
+    Attributes
+    ----------
+        candidacy_pos: str
+            The candidacy position [presidente, governador]
+        aggregation_level: str
+            The data geogrephical level of aggrevation
+        geocoding_api: str
+            The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
+    """
     candidacy_pos: str = None
     aggregation_level: str = None
+    geocoding_api: str = None
     __results_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     __locations_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     __list_results_data: List[pd.DataFrame] = field(default_factory=list)
@@ -66,11 +79,12 @@ class Interim(Election):
         ).infer_objects()
 
     def _read_locations_csv(self) -> pd.DataFrame:
+        """Reads location csv from processed state folder"""
         filepath = join(
             self._get_process_folder_path(state="processed"),
             "locations",
             self.aggregation_level,
-            "locations_IBGE.csv",
+            f"locations_{self.geocoding_api}.csv",
         )
         self.__locations_data = pd.read_csv(filepath).infer_objects()
 
@@ -103,6 +117,7 @@ class Interim(Election):
         )
 
     def _drop_duplicated_rows(self) -> pd.DataFrame:
+        """Drop duplicated section rows from results data"""
         self.__results_data.drop_duplicates(
             subset=[
                 "[GEO]_ID_TSE_CITY",
@@ -114,6 +129,7 @@ class Interim(Election):
         )
 
     def _join_votes(self, votes: pd.DataFrame) -> pd.DataFrame:
+        """Join votes dataframe with results dataframe"""
         # Index data
         self.__results_data.set_index(
             keys=[
@@ -130,21 +146,26 @@ class Interim(Election):
         self.__results_data.drop("[ELECTION]_VOTES", axis=1, inplace=True)
 
     def _drop_na_cols(self) -> pd.DataFrame:
+        """Drop all columns with NaN"""
         self.__results_data.dropna(axis=1, inplace=True)
 
     def _drop_na_candidates(self) -> pd.DataFrame:
+        """Drop NaN candidates created as columns"""
         self.__results_data.dropna(
             subset=["[ELECTION]_ID_CANDIDATE"], axis=0, inplace=True
         )
 
     def _fill_na_electorate_biometry(self) -> pd.DataFrame:
+        """Fill electorate biometry column in results data nans with zero"""
         self.__results_data["[ELECTION]_ELECTORATE_BIOMETRIA"].fillna(0, inplace=True)
 
     def _convert_cols_to_str(self) -> pd.DataFrame:
+        """Convert all columns names from results data to str"""
         self.__results_data.columns = self.__results_data.columns.astype(str)
 
-    def _structure_data(self):
-        # List raw data
+    def _pre_processing_data(self):
+        """Pre Processing the elections results"""
+        self.logger_info("Pre-processing elections results.")
         raw_dir = join(self._get_state_folders_path(state="raw"), self.data_name)
         filenames = self._get_files_in_id(raw_dir)
         for filename in tqdm(filenames, desc="Pre-Processing", leave=False):
@@ -162,11 +183,13 @@ class Interim(Election):
             self.__list_results_data.append(self.__results_data.copy())
 
     def _concatenate_list_results_data(self) -> pd.DataFrame:
+        """Concatenate the election results data in onw"""
         self.__results_data = pd.concat(self.__list_results_data)
         self._convert_cols_to_str()
         self.__list_results_data = []
 
     def _create_aggregation_map(self) -> Dict[str, str]:
+        """Creates an aggregation map for the results data"""
         return {
             col: (
                 "sum"
@@ -177,6 +200,7 @@ class Interim(Election):
         }
 
     def _get_merging_keys(self) -> List[str]:
+        """Generates the merging keys columns depending on the aggregatiopn level"""
         merging_keys = {
             "polling_place": [
                 "[GEO]_UF",
@@ -189,11 +213,14 @@ class Interim(Election):
         return merging_keys[self.aggregation_level]
 
     def _aggregate_data(self) -> pd.DataFrame:
+        """Aggregate the results data considering the aggregation level paramenter"""
+        self.logger_info(f"Aggregating data by {self.aggregation_level}")
         group_keys = self._get_merging_keys()
         agg_map = self._create_aggregation_map()
         self.__results_data = self.__results_data.groupby(by=group_keys).agg(agg_map)
 
     def _get_not_common_cols(self) -> List[str]:
+        """Get the columns in the location data that does not exist in the results data"""
         return [
             col
             for col in self.__locations_data.columns
@@ -201,6 +228,7 @@ class Interim(Election):
         ]
 
     def _merge_results_and_location_data(self):
+        """Merge results data with location data"""
         self.logger_info("Merging results and location data.")
         # Load data with geocode information from polling places
         self._read_locations_csv()
@@ -212,15 +240,16 @@ class Interim(Election):
         )
 
     def _save_results_data(self):
+        """Save results data"""
         self.__results_data.to_csv(join(self.cur_dir, "data.csv"), index=False)
 
     def run(self):
-        """Run process"""
+        """Run interim process"""
         self.init_logger_name()
         self.init_state()
         self.logger_info("Generating interim data.")
         self._make_folders()
-        self._structure_data()
+        self._pre_processing_data()
         self._concatenate_list_results_data()
         self._aggregate_data()
         self._merge_results_and_location_data()
