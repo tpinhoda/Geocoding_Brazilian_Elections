@@ -58,7 +58,7 @@ class Raw(Election):
     def _download_raw_data(self) -> None:
         """Donwload raw election data"""
         self.logger_info("Downloading raw data.")
-        for link in tqdm(self.__links, desc="Downloading"):
+        for link in tqdm(self.__links, desc="Downloading", leave=False):
             name_file = link.split("/")[-1]
             urlretrieve(link, join(self.cur_dir, name_file))
 
@@ -66,7 +66,7 @@ class Raw(Election):
         """Unzip only the csv raw data in the current directory"""
         self.logger_info("Unzipping raw data.")
         list_filename = self._get_files_in_cur_dir()
-        for zip_filename in tqdm(list_filename, desc="Unziping"):
+        for zip_filename in tqdm(list_filename, desc="Unziping", leave=False):
             with zipfile.ZipFile(join(self.cur_dir, zip_filename), "r") as zip_ref:
                 for filename in zip_ref.namelist():
                     if filename.endswith(".csv"):
@@ -99,13 +99,13 @@ class Raw(Election):
         self._remove_zip_files()
         self._rename_raw_data()
 
-    def generate_raw_data(self) -> None:
+    def run(self) -> None:
         """Generate election raw data"""
         self.init_logger_name()
         self.init_state()
         self.logger_info("Generating raw data.")
         self._make_folders()
-        files_exist = self._get_files_in_cur_dir
+        files_exist = self._get_files_in_cur_dir()
         if not files_exist:
             self._empty_folder_run()
         else:

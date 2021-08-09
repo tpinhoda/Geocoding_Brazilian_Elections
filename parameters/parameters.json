@@ -3,12 +3,13 @@
         "region": "Brazil",
         "org": "TSE",
         "year": "2018",
-        "round": "2"
+        "round": "2",
+        "aggregation_level": "city"
     },
     "results": {
         "data_name": "results",
         "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html",
-        "office": "Presidente",
+        "candidacy_pos": "presidente",
         "candidates": ["JAIR BOLSONARO", "HADDAD"],
         "levenshtein_threshold": 0.8,
         "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM"],
@@ -24,7 +25,6 @@
         "save_at": 1000,
         "meshblock_crs": 4674,
         "meshblock_col_id": "CD_GEOCMU",
-        "aggregation_level": "city",
         "city_buffers": [0.01, 0.02, 0.03]
     }
    

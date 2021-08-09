@@ -120,6 +120,14 @@ class Election(ABC):
             if isfile(join(self.cur_dir, filename))
         ]
 
+    def _get_files_in_id(self, directory: str) -> List[str]:
+        """Returns a list of filename in directory"""
+        return [
+            filename
+            for filename in listdir(directory)
+            if isfile(join(directory, filename))
+        ]
+
     def _remove_file_from_cur_dir(self, filename: str) -> None:
         """Remvoves a filename from the current directory"""
         remove(join(self.cur_dir, filename))

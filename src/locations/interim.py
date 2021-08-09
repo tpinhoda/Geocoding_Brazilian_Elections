@@ -101,7 +101,7 @@ class Interim(Election):
         )
         self.__data = pd.read_csv(
             filepath, encoding="Latin5", sep=";", decimal=",", dtype=MAP_COL_DTYPES
-        )
+        ).infer_objects()
 
     def _rename_cols(self):
         """Filter and rename only relevant columns"""

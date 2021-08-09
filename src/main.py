@@ -61,7 +61,7 @@ def main():
     pipeline_locations = Pipeline("locations", params, switchers["locations"])
     pipeline_locations.run()
     # Creates and run the results processing pipeline
-    pipeline_results = Pipeline("results",  params, switchers["results"])
+    pipeline_results = Pipeline("results", params, switchers["results"])
     pipeline_results.run()
 
 

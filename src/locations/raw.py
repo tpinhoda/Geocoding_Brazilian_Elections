@@ -31,7 +31,7 @@ class Raw(Election):
 
     def init_logger_name(self):
         """Initialize the logger name"""
-        self.logger_name = "Locations (RAW)"
+        self.logger_name = "Locations (Raw)"
 
     def init_state(self):
         """Initialize the  process state name"""
@@ -104,7 +104,7 @@ class Raw(Election):
         self.init_state()
         self.logger_info("Generating raw data.")
         self._make_folders()
-        files_exist = self._get_files_in_cur_dir
+        files_exist = self._get_files_in_cur_dir()
         if not files_exist:
             self._empty_folder_run()
         else:
