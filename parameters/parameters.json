@@ -6,14 +6,13 @@
         "round": "2"
     },
     "results": {
-        "foldername": "results",
+        "data_name": "results",
         "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html",
         "office": "Presidente",
         "candidates": ["JAIR BOLSONARO", "HADDAD"],
         "levenshtein_threshold": 0.8,
         "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM"],
-        "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03"],
-        "data_name": "results"
+        "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03"]
     },
     "locations": {
         "data_name": "locations",

@@ -106,7 +106,7 @@ class Raw(Election):
         self._make_folders()
         files_exist = self._get_files_in_cur_dir
         if not files_exist:
-            self._empty_folder_run
+            self._empty_folder_run()
         else:
             self.logger_warning(
                 "There are files in the working directory, the process only runs on empty folders!"

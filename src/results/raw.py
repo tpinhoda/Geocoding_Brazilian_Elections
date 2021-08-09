@@ -1,7 +1,6 @@
 """Generate raw data for election results"""
 from os.path import join
 from typing import List
-import logging
 import re
 import zipfile
 from dataclasses import dataclass, field
@@ -24,9 +23,9 @@ class Raw(Election):
         links: list of links to download raw data
     """
 
-    url: str = None
-    html: str = None
-    links: List[str] = field(default_factory=list)
+    url_data: str = None
+    __html: str = None
+    __links: List[str] = field(default_factory=list)
 
     def init_logger_name(self):
         """Initialize the logger name"""
@@ -43,23 +42,23 @@ class Raw(Election):
 
     def _fill_url(self) -> str:
         """Fill the gaps in the election data url link"""
-        return self.url.format(self.year, self.round)
+        return self.url_data.format(self.year, self.round)
 
     def _download_html(self) -> None:
         """Donwload the election results page"""
-        self.url = self._fill_url()
-        self.html = urlopen(self.url).read().decode("utf-8")
+        self.url_data = self._fill_url()
+        self.__html = urlopen(self.url_data).read().decode("utf-8")
 
     def _get_links(self) -> None:
         """Get the links from the html"""
-        soup = BeautifulSoup(self.html, "html.parser")
+        soup = BeautifulSoup(self.__html, "html.parser")
         for link in soup.findAll("a", attrs={"href": re.compile(r"\.zip$")}):
-            self.links.append(link.get("href"))
+            self.__links.append(link.get("href"))
 
     def _download_raw_data(self) -> None:
         """Donwload raw election data"""
         self.logger_info("Downloading raw data.")
-        for link in tqdm(self.links, desc="Downloading"):
+        for link in tqdm(self.__links, desc="Downloading"):
             name_file = link.split("/")[-1]
             urlretrieve(link, join(self.cur_dir, name_file))
 
@@ -83,7 +82,7 @@ class Raw(Election):
 
     def _rename_raw_data(self) -> None:
         """Rename all files in the current directory"""
-        self.logger_info("Renameing csv files.")
+        self.logger_info("Renameing csv files .")
         list_filename = self._get_files_in_cur_dir()
         for old_filename in list_filename:
             new_filename = old_filename.split("_")[2] + ".csv"
