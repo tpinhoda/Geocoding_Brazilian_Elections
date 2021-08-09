@@ -212,7 +212,7 @@ class Interim(Election):
         )
 
     def _save_results_data(self):
-        self.__results_data.to_csv("data.csv", index=False)
+        self.__results_data.to_csv(join(self.cur_dir, "data.csv"), index=False)
 
     def run(self):
         """Run process"""
