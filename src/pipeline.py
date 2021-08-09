@@ -40,6 +40,7 @@ class Pipeline:
     switchers: Dict[str, int]
         Dictionary of switchers to generate the pipeline
     """
+
     data_name: str
     params: Dict[str, str] = field(default_factory=dict)
     switchers: Dict[str, str] = field(default_factory=dict)
@@ -51,7 +52,9 @@ class Pipeline:
     @staticmethod
     def _get_class_attributes(class_process):
         """Returns the attributes required to instanciate a class"""
-        attributes = inspect.getmembers(class_process, lambda a: not inspect.isroutine(a))
+        attributes = inspect.getmembers(
+            class_process, lambda a: not inspect.isroutine(a)
+        )
         return [
             a[0]
             for a in attributes

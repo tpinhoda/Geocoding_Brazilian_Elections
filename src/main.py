@@ -9,18 +9,22 @@ from coloredlogs import install as coloredlogs_install
 from rich.traceback import install as rich_install
 from src.pipeline import Pipeline
 
+
 def initialize_coloredlog():
     """Install the colored log package"""
     coloredlogs_install()
+
 
 def initialize_logging():
     """Initialize the format of the logger messages"""
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
+
 def initialize_rich():
     """Install the rich tracerback"""
     rich_install()
+
 
 def load_env_variables(project_dir) -> Dict[str, str]:
     """Loads enviromental variables in the .env file."""
@@ -43,7 +47,7 @@ def main():
     initialize_coloredlog()
     initialize_rich()
     initialize_logging()
-     # Project path
+    # Project path
     project_dir = str(Path(__file__).resolve().parents[1])
     # Load enviromental variables
     env_var = load_env_variables(project_dir)
@@ -56,6 +60,7 @@ def main():
     # Creates the processing pipeline
     pipeline = Pipeline("locations", params, switchers["locations"])
     pipeline.run()
+
 
 if __name__ == "__main__":
     main()

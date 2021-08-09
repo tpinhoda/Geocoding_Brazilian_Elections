@@ -48,6 +48,16 @@ class Election(ABC):
         logger = logging.getLogger(self.logger_name)
         logger.info(message)
 
+    def logger_warning(self, message: str):
+        """Print longger info message"""
+        logger = logging.getLogger(self.logger_name)
+        logger.warning(message)
+
+    def logger_error(self, message: str):
+        """Print longger info message"""
+        logger = logging.getLogger(self.logger_name)
+        logger.error(message)
+
     def _mkdir(self, folder_name: str) -> None:
         """Creates a folder at current path"""
         # logger = logging.getLogger(self.logger_name)

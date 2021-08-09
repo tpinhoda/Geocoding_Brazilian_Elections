@@ -37,6 +37,11 @@ class Raw(Election):
         """Initialize the  process state name"""
         self.state = "raw"
 
+    def _make_folders(self):
+        """Make the initial folders"""
+        self._make_initial_folders()
+        self._mkdir(self.data_name)
+
     # Get locations file
     def _fill_url(self) -> str:
         """Fill the gaps in the election data url link"""
@@ -88,10 +93,10 @@ class Raw(Election):
         self._rename_meshblock_files()
         self._remove_city_meshblock_zip_files()
 
-    def _make_folders(self):
-        """Make the initial folders"""
-        self._make_initial_folders()
-        self._mkdir(self.data_name)
+    def _empty_folder_run(self):
+        """Run without files in the folder"""
+        self._download_location_raw_data()
+        self._get_city_meshblock_file()
 
     def run(self) -> None:
         """Generate election raw data"""
@@ -99,5 +104,10 @@ class Raw(Election):
         self.init_state()
         self.logger_info("Generating raw data.")
         self._make_folders()
-        self._download_location_raw_data()
-        self._get_city_meshblock_file()
+        files_exist = self._get_files_in_cur_dir
+        if not files_exist:
+            self._empty_folder_run
+        else:
+            self.logger_warning(
+                "There are files in the working directory, the process only runs on empty folders!"
+            )

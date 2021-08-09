@@ -61,6 +61,7 @@ class Processed(Election):
         city_buffers: List
             List of city buffers
     """
+
     geocoding_api: str = None
     aggregation_level: str = None
     meshblock_filename: str = None
@@ -175,7 +176,7 @@ class Processed(Election):
         )
 
     def _generate_rural_areas_mark(self):
-
+        """Generates rural areas marks"""
         self.logger_info("Generating rural areas marks.")
         searchfor = [
             "rural",
@@ -190,7 +191,7 @@ class Processed(Election):
             lambda x: any(i in x.lower() for i in searchfor)
         )
 
-    def generate_capitals_mark(self):
+    def _generate_capitals_mark(self):
         """Generates capital marks"""
         self.logger_info("Generating capital cities marks.")
         capitals_l = []
@@ -202,6 +203,7 @@ class Processed(Election):
         self.__data["[GEO]_CAPITAL_MARKS"] = capitals_l
 
     def run(self):
+        """Run state process"""
         self.init_logger_name()
         self.init_state()
         self.logger_info("Generating processed data.")
@@ -211,5 +213,5 @@ class Processed(Election):
         self._generate_city_limits_measure()
         self._generate_levenshtein_measure()
         self._generate_rural_areas_mark()
-        self.generate_capitals_mark()
+        self._generate_capitals_mark()
         self._save_data(f"locations_{self.geocoding_api}.csv")

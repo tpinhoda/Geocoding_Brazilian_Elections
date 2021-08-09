@@ -134,7 +134,7 @@ class Interim(Election):
             "city": ["[GEO]_ID_IBGE_CITY"],
         }
         self.__data["ID"] = self.__data[id_template[self.aggregation_level]].apply(
-           self._concat_cols, axis=1
+            self._concat_cols, axis=1
         )
         self.__data = self.__data.groupby(by="ID").agg("first")
 
