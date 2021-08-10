@@ -11,9 +11,9 @@
         "data_name": "results",
         "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html",
         "candidacy_pos": "presidente",
-        "candidates": ["JAIR BOLSONARO", "HADDAD"],
+        "candidates": ["13", "17"],
         "levenshtein_threshold": 0.8,
-        "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM"],
+        "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM", "IBGE"],
         "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03"]
     },
     "locations": {

@@ -5,10 +5,18 @@ from dataclasses import dataclass, field
 from tqdm import tqdm
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
+from pandas_profiling import ProfileReport
 from src.election import Election
 
 
 MAP_CANDIDACY = {"presidente": 1, "governador": 3}
+
+UNIQUE_ID = [
+    "[GEO]_ID_TSE_CITY",
+    "[GEO]_ID_POLLING_ZONE",
+    "[GEO]_ID_POLLING_PLACE",
+    "[GEO]_ID_POLLING_SECTION",
+]
 
 MAP_COL_RENAME = {
     "SG_ UF": "[GEO]_UF",
@@ -42,6 +50,7 @@ class Interim(Election):
         geocoding_api: str
             The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
     """
+
     candidacy_pos: str = None
     aggregation_level: str = None
     geocoding_api: str = None
@@ -61,6 +70,7 @@ class Interim(Election):
         """Make the initial folders"""
         self._make_initial_folders()
         self._mkdir(self.data_name)
+        self._mkdir(self.aggregation_level)
         self._mkdir(self.candidacy_pos.lower())
 
     def _read_results_csv(self, data_filename) -> pd.DataFrame:
@@ -100,31 +110,30 @@ class Interim(Election):
             == MAP_CANDIDACY[self.candidacy_pos]
         ]
 
+    @staticmethod
+    def _rename_votes_cols(votes) -> pd.DataFrame:
+        map_rename_cols = {
+            col: f"[ELECTION]_CANDIDATE_{int(col)}"
+            for col in votes.columns
+            if col not in [95, 96] and col
+        }
+        map_rename_cols[95] = "[ELECTION]_BLANK"
+        map_rename_cols[96] = "[ELECTION]_NULL"
+        return votes.rename(columns=map_rename_cols)
+
     def _get_votes_by_candidates(self) -> pd.DataFrame:
         """Get votes by candadidate"""
-        return (
+        votes = (
             self.__results_data.copy()
-            .set_index(
-                [
-                    "[GEO]_ID_TSE_CITY",
-                    "[GEO]_ID_POLLING_ZONE",
-                    "[GEO]_ID_POLLING_PLACE",
-                    "[GEO]_ID_POLLING_SECTION",
-                    "[ELECTION]_ID_CANDIDATE",
-                ]
-            )
+            .set_index(UNIQUE_ID + ["[ELECTION]_ID_CANDIDATE"])
             .unstack(fill_value=0)["[ELECTION]_VOTES"]
         )
+        return self._rename_votes_cols(votes)
 
     def _drop_duplicated_rows(self) -> pd.DataFrame:
         """Drop duplicated section rows from results data"""
         self.__results_data.drop_duplicates(
-            subset=[
-                "[GEO]_ID_TSE_CITY",
-                "[GEO]_ID_POLLING_ZONE",
-                "[GEO]_ID_POLLING_PLACE",
-                "[GEO]_ID_POLLING_SECTION",
-            ],
+            subset=UNIQUE_ID,
             inplace=True,
         )
 
@@ -132,18 +141,21 @@ class Interim(Election):
         """Join votes dataframe with results dataframe"""
         # Index data
         self.__results_data.set_index(
-            keys=[
-                "[GEO]_ID_TSE_CITY",
-                "[GEO]_ID_POLLING_ZONE",
-                "[GEO]_ID_POLLING_PLACE",
-                "[GEO]_ID_POLLING_SECTION",
-            ],
+            keys=UNIQUE_ID,
             inplace=True,
         )
         # Join votes and data
         self.__results_data = self.__results_data.join(votes)
         self.__results_data.reset_index(inplace=True)
-        self.__results_data.drop("[ELECTION]_VOTES", axis=1, inplace=True)
+        self.__results_data.drop(
+            [
+                "[ELECTION]_VOTES",
+                "[ELECTION]_ID_CANDIDACY_POSITION",
+                "[ELECTION]_ID_CANDIDATE",
+            ],
+            axis=1,
+            inplace=True,
+        )
 
     def _drop_na_cols(self) -> pd.DataFrame:
         """Drop all columns with NaN"""
@@ -206,7 +218,7 @@ class Interim(Election):
                 "[GEO]_UF",
                 "[GEO]_CITY",
                 "[GEO]_POLLING_ZONE",
-                ["GEO_POLLING_PLACE"],
+                "[GEO]_POLLING_PLACE",
             ],
             "city": ["[GEO]_UF", "[GEO]_CITY"],
         }
@@ -243,6 +255,14 @@ class Interim(Election):
         """Save results data"""
         self.__results_data.to_csv(join(self.cur_dir, "data.csv"), index=False)
 
+    def _generate_pandas_profiling(self):
+        """Generates pandas profiling"""
+        self.__results_data.reset_index(drop=True, inplace=True)
+        profiling = ProfileReport(
+            self.__results_data, dark_mode=True, orange_mode=True, explorative=True
+        )
+        profiling.to_file(output_file=join(self.cur_dir, "profiling.html"))
+
     def run(self):
         """Run interim process"""
         self.init_logger_name()
@@ -254,3 +274,4 @@ class Interim(Election):
         self._aggregate_data()
         self._merge_results_and_location_data()
         self._save_results_data()
+        self._generate_pandas_profiling()
