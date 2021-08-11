@@ -211,7 +211,7 @@ class Interim(Election):
 
     def _aggregate_data(self) -> pd.DataFrame:
         """Aggregate the results data considering the aggregation level paramenter"""
-        self.logger_info(f"Aggregating data by {self.aggregation_level}")
+        self.logger_info(f"Aggregating data by {self.aggregation_level}.")
         group_keys = self._get_merging_keys()
         agg_map = self._create_aggregation_map()
         self.__results_data = self.__results_data.groupby(by=group_keys).agg(agg_map)
@@ -244,6 +244,7 @@ class Interim(Election):
 
     def _generate_pandas_profiling(self):
         """Generates pandas profiling"""
+        self.logger_info("Generating profiling.")
         self.__results_data.reset_index(drop=True, inplace=True)
         profiling = ProfileReport(
             self.__results_data, dark_mode=True, orange_mode=True, explorative=True

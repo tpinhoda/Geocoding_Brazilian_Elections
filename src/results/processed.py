@@ -42,6 +42,7 @@ class Processed(Election):
 
     def _read_data_csv(self) -> pd.DataFrame:
         """Read the data.csv file and returns a pandas dataframe"""
+        self.logger_info("Reading interim data.")
         filepath = join(
             self._get_process_folder_path(state="interim"),
             self.data_name,
@@ -68,6 +69,7 @@ class Processed(Election):
 
     def _filter_data(self):
         """Filter the dataset according to parameters"""
+        self.logger_info("Filtering dataset by parameters.")
         self.__data = self.__data[
             self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] >= self.levenshtein_threshold
         ]
@@ -90,12 +92,14 @@ class Processed(Election):
 
     def _save_data(self):
         """Save the dataset"""
+        self.logger_info("Saving final dataset.")
         self.__data.to_csv(
             join(self.cur_dir, f"data_{self.geocoding_api}.csv"), index=False
         )
 
     def _generate_report(self):
         """Generates json report concerning the parameters used to create the dataset"""
+        self.logger_info("Generating final report.")
         report_dict = {
             "Levenshtein Threshold": str(self.levenshtein_threshold),
             "City Limits": self.city_limits_filter,

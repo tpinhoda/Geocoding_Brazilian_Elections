@@ -153,7 +153,7 @@ class Processed(Election):
 
     def _generate_levenshtein_measure(self):
         """Generate levenshtein measure."""
-        self.logger_info("Generating Levenshtein similarity measure.")
+        self.logger_info("Generating levenshtein similarity measure.")
         self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] = self.__data.apply(
             lambda x: Levenshtein.ratio(
                 x["[GEO]_QUERY_ADDRESS"].lower(), x["[GEO]_FETCHED_ADDRESS"].lower()

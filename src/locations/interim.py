@@ -79,7 +79,7 @@ class Interim(Election):
     # Pre-Processing functions
     def _read_csv(self):
         """Read the polling places.csv file and returns a pandas dataframe"""
-        self.logger_info("Reading data.")
+        self.logger_info("Reading raw data.")
         filepath = join(
             self._get_process_folder_path(state="raw"),
             self.data_name,
