@@ -1,3 +1,4 @@
+"""Generates processed data regarding election results"""
 import json
 from os.path import join
 from dataclasses import dataclass, field
@@ -7,6 +8,25 @@ from src.election import Election
 
 @dataclass
 class Processed(Election):
+    """Represents the Brazilian election results in processed state of processing.
+
+    This object pre-processes the Brazilian election results.
+
+    Attributes
+    ----------
+        candidacy_pos: str
+            The candidacy position [presidente, governador]
+        aggregation_level: str
+            The data geogrephical level of aggrevation
+        geocoding_api: str
+            The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
+        levenshtesin_threshold: int
+            The threshold considereing the levenshtein similarity measure of addresses
+        precision_filter: List[str]
+            The list of precision to be filter from the dataset
+        city_limits_fitler: List[str]
+            The list of city limits to be filter from the dataset
+    """
     aggregation_level: str = None
     candidacy_pos: str = None
     candidates: str = None
@@ -44,9 +64,11 @@ class Processed(Election):
         self.__data = pd.read_csv(filepath).infer_objects()
 
     def _get_candidates_cols(self):
+        """Returns the candidates columns"""
         return [col for col in self.__data if "CANDIDATE" in col]
 
     def _get_data_info(self):
+        """Returns the interim data basic information"""
         candidate_cols = self._get_candidates_cols()
         self.__data_info["size"] = len(self.__data)
         self.__data_info["turnout"] = self.__data["[ELECTION]_TURNOUT"].sum()
@@ -57,6 +79,7 @@ class Processed(Election):
         self.__data_info["null_blank"] = self.__data["[ELECTION]_BLANK"]
 
     def _filter_data(self):
+        """Filter the dataset according to parameters"""
         self.__data = self.__data[
             self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] >= self.levenshtein_threshold
         ]
@@ -68,17 +91,21 @@ class Processed(Election):
         ]
 
     def _calculate_per(self) -> int:
+        """Calculates the dataset's percentual of electorate representation"""
         original_turnout = self.__data_info["turnout"]
         filtered_turnout = self.__data["[ELECTION]_TURNOUT"].sum()
         self.__per = 100 * filtered_turnout / original_turnout
 
     def _make_per_fold(self):
-        self._mkdir("{:.2f}".format(self.__per))
+        """Make the per folder"""
+        self._mkdir("PER_{:.2f}".format(self.__per))
 
     def _save_data(self):
+        """Save the dataset"""
         self.__data.to_csv(join(self.cur_dir, "data.csv"), index=False)
 
     def _generate_report(self):
+        """Generates json report concerning the parameters used to create the dataset"""
         report_dict = {
             "Levenshtein Threshold": str(self.levenshtein_threshold),
             "City Limits": self.city_limits_filter,
@@ -87,8 +114,8 @@ class Processed(Election):
             "#Rows": f"{len(self.__data)} ({100 * len(self.__data) / self.__data_info['size']}%)",
         }
 
-        with open(join(self.cur_dir, "parameters.json"), "w") as fp:
-            json.dump(report_dict, fp, indent=4)
+        with open(join(self.cur_dir, "parameters.json"), "w") as file:
+            json.dump(report_dict, file, indent=4)
 
     def run(self):
         """Run process"""
