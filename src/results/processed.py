@@ -5,9 +5,6 @@ from typing import Dict, List, Optional
 import pandas as pd
 from src.election import Election
 
-QUERY_COLS = ["[GEO]_LEVENSHTEIN_THRESHOLD", "[GEO]_CITY_LIMITS", "[GEO]_PRECISION"]
-
-
 @dataclass
 class Processed(Election):
     aggregation_level: str = None
