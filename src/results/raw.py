@@ -27,7 +27,6 @@ class Raw(Election):
     __html: str = None
     __links: List[str] = field(default_factory=list)
 
-
     def _fill_url(self) -> str:
         """Fill the gaps in the election data url link"""
         return self.url_data.format(self.year, self.round)
@@ -89,10 +88,10 @@ class Raw(Election):
 
     def run(self) -> None:
         """Generate election raw data"""
-        self.init_logger_name(msg = "Results (Raw)")
-        self.init_state(state = "raw")
+        self.init_logger_name(msg="Results (Raw)")
+        self.init_state(state="raw")
         self.logger_info("Generating raw data.")
-        self._make_folders(folders = [self.data_name])
+        self._make_folders(folders=[self.data_name])
         files_exist = self._get_files_in_cur_dir()
         if not files_exist:
             self._empty_folder_run()

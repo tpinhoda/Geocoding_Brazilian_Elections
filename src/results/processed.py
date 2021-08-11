@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 from src.election import Election
 
+
 @dataclass
 class Processed(Election):
     """Represents the Brazilian election results in processed state of processing.
@@ -27,6 +28,7 @@ class Processed(Election):
         city_limits_fitler: List[str]
             The list of city limits to be filter from the dataset
     """
+
     aggregation_level: str = None
     candidacy_pos: str = None
     geocoding_api: str = None
@@ -88,7 +90,9 @@ class Processed(Election):
 
     def _save_data(self):
         """Save the dataset"""
-        self.__data.to_csv(join(self.cur_dir, f"data_{self.geocoding_api}.csv"), index=False)
+        self.__data.to_csv(
+            join(self.cur_dir, f"data_{self.geocoding_api}.csv"), index=False
+        )
 
     def _generate_report(self):
         """Generates json report concerning the parameters used to create the dataset"""
@@ -108,7 +112,9 @@ class Processed(Election):
         self.init_logger_name(msg="Results (Processed)")
         self.init_state(state="processed")
         self.logger_info("Generating processed data.")
-        self._make_folders([self.data_name, self.aggregation_level, self.candidacy_pos.lower()])
+        self._make_folders(
+            folders=[self.data_name, self.aggregation_level, self.candidacy_pos.lower()]
+        )
         self._read_data_csv()
         self._get_data_info()
         self._filter_data()

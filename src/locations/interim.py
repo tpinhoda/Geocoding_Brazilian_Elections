@@ -76,20 +76,6 @@ class Interim(Election):
     data_filename: str = None
     __data: pd.DataFrame = field(default_factory=pd.DataFrame)
 
-    def init_logger_name(self):
-        """Initialize the logger name"""
-        self.logger_name = "Locations (Interim)"
-
-    def init_state(self):
-        """Initialize the  process state name"""
-        self.state = "interim"
-
-    def _make_folders(self):
-        """Make initial folders"""
-        self._make_initial_folders()
-        self._mkdir(self.data_name)
-        self._mkdir(self.aggregation_level)
-
     # Pre-Processing functions
     def _read_csv(self):
         """Read the polling places.csv file and returns a pandas dataframe"""
@@ -298,9 +284,9 @@ class Interim(Election):
 
     def run(self):
         """Generates interim __data regarding the polling places"""
-        self.init_logger_name()
-        self.init_state()
+        self.init_logger_name(msg="Locations (Interim)")
+        self.init_state(state="interim")
         self.logger_info("Generating interim data.")
-        self._make_folders()
+        self._make_folders(folders=[self.data_name, self.aggregation_level])
         self._preprocessing_data()
         self._geocode_data()

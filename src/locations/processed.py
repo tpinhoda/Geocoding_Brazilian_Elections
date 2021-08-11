@@ -71,20 +71,6 @@ class Processed(Election):
     __data: pd.DataFrame = field(default_factory=pd.DataFrame)
     __meshblock: gpd.GeoDataFrame = field(default_factory=gpd.GeoDataFrame)
 
-    def init_logger_name(self):
-        """Initialize the logger name"""
-        self.logger_name = "Locations (Processed)"
-
-    def init_state(self):
-        """Initialize the  process state name"""
-        self.state = "processed"
-
-    def _make_folders(self):
-        """Make initial folders"""
-        self._make_initial_folders()
-        self._mkdir(self.data_name)
-        self._mkdir(self.aggregation_level)
-
     def _read_interim_data(self):
         """Read the interim location data file and returns a pandas dataframe."""
         self.logger_info("Reading interim data.")
@@ -204,10 +190,10 @@ class Processed(Election):
 
     def run(self):
         """Run state process"""
-        self.init_logger_name()
-        self.init_state()
+        self.init_logger_name(msg="Locations (Processed)")
+        self.init_state(state="processed")
         self.logger_info("Generating processed data.")
-        self._make_folders()
+        self._make_folders(folders=[self.data_name, self.aggregation_level])
         self._read_interim_data()
         self._read_cities_meshblock_data()
         self._generate_city_limits_measure()
