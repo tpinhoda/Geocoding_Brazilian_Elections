@@ -14,10 +14,10 @@ class Processed(Election):
 
     Attributes
     ----------
-        candidacy_pos: str
-            The candidacy position [presidente, governador]
         aggregation_level: str
             The data geogrephical level of aggrevation
+        candidacy_pos: str
+            The candidacy position [presidente, governador]
         geocoding_api: str
             The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
         levenshtesin_threshold: int
@@ -29,6 +29,7 @@ class Processed(Election):
     """
     aggregation_level: str = None
     candidacy_pos: str = None
+    geocoding_api: str = None
     candidates: str = None
     levenshtein_threshold: float = None
     precision_filter: List[str] = field(default_factory=list)
@@ -59,7 +60,7 @@ class Processed(Election):
             self.data_name,
             self.aggregation_level,
             self.candidacy_pos,
-            "data.csv",
+            f"data_{self.geocoding_api}.csv",
         )
         self.__data = pd.read_csv(filepath).infer_objects()
 
@@ -102,7 +103,7 @@ class Processed(Election):
 
     def _save_data(self):
         """Save the dataset"""
-        self.__data.to_csv(join(self.cur_dir, "data.csv"), index=False)
+        self.__data.to_csv(join(self.cur_dir, f"data_{self.geocoding_api}.csv"), index=False)
 
     def _generate_report(self):
         """Generates json report concerning the parameters used to create the dataset"""

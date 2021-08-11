@@ -253,7 +253,7 @@ class Interim(Election):
 
     def _save_results_data(self):
         """Save results data"""
-        self.__results_data.to_csv(join(self.cur_dir, "data.csv"), index=False)
+        self.__results_data.to_csv(join(self.cur_dir, f"data_{self.geocoding_api}.csv"), index=False)
 
     def _generate_pandas_profiling(self):
         """Generates pandas profiling"""
