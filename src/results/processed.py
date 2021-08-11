@@ -38,21 +38,6 @@ class Processed(Election):
     __data_info: Dict = field(default_factory=dict)
     __per: Optional[int] = None
 
-    def init_logger_name(self):
-        """Initialize the logger name"""
-        self.logger_name = "Results (Processed)"
-
-    def init_state(self):
-        """Initialize the  process state name"""
-        self.state = "processed"
-
-    def _make_folders(self):
-        """Make the initial folders"""
-        self._make_initial_folders()
-        self._mkdir(self.data_name)
-        self._mkdir(self.aggregation_level)
-        self._mkdir(self.candidacy_pos.lower())
-
     def _read_data_csv(self) -> pd.DataFrame:
         """Read the data.csv file and returns a pandas dataframe"""
         filepath = join(
@@ -120,10 +105,10 @@ class Processed(Election):
 
     def run(self):
         """Run process"""
-        self.init_logger_name()
-        self.init_state()
+        self.init_logger_name(msg="Results (Processed)")
+        self.init_state(state="processed")
         self.logger_info("Generating processed data.")
-        self._make_folders()
+        self._make_folders([self.data_name, self.aggregation_level, self.candidacy_pos.lower()])
         self._read_data_csv()
         self._get_data_info()
         self._filter_data()

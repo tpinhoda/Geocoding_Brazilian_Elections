@@ -139,17 +139,19 @@ class Election(ABC):
         except FileExistsError:
             pass
 
-    @abstractmethod
-    def init_logger_name(self):
-        """Initialize logger name"""
+    def init_logger_name(self, msg: str):
+        """Initialize the logger name"""
+        self.logger_name = msg
 
-    @abstractmethod
-    def init_state(self):
-        """Initialize state process"""
+    def init_state(self, state: str):
+        """Initialize the  process state name"""
+        self.state = state
 
-    @abstractmethod
-    def _make_folders(self):
-        """Make dataset folders"""
+    def _make_folders(self, folders: List[str]):
+        """Make the initial folders"""
+        self._make_initial_folders()
+        for folder in folders:
+            self._mkdir(folder)
 
     @abstractmethod
     def run(self):
