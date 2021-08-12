@@ -86,7 +86,7 @@ class Interim(Election):
             self.data_filename,
         )
         self.__data = pd.read_csv(
-            filepath, encoding="Latin5", sep=";", decimal=",", dtype=MAP_COL_DTYPES
+            filepath, encoding="Latin5", sep=";", decimal=",", dtype=MAP_COL_DTYPES, low_memory=False
         ).infer_objects()
 
     def _rename_cols(self):
@@ -153,6 +153,15 @@ class Interim(Election):
     def _save_data(self, filename):
         """save the __data in the iterim folder"""
         self.__data.to_csv(join(self.cur_dir, filename), index=False)
+    
+    def _remove_unecessary_cols(self):
+        """Remove unecessary cols"""
+        unecessary_cols = {
+            "city": [col for col in self.__data if "POLLING" in col]
+        }
+        self.__data.drop(
+            unecessary_cols.get(self.aggregation_level), axis=1, inplace=True
+        )
 
     def _preprocessing_data(self):
         """Pre-processing of the polling places"""
@@ -165,6 +174,8 @@ class Interim(Election):
         self._create_precision_attribute()
         self._create_fetched_address_attribute()
         self._create_query_address_attribute()
+        self._remove_unecessary_cols()
+    
 
     def _generate_address(self, row):
         """Generate the address based on the aggregation level"""
@@ -289,4 +300,5 @@ class Interim(Election):
         self.logger_info("Generating interim data.")
         self._make_folders(folders=[self.data_name, self.aggregation_level])
         self._preprocessing_data()
+        
         self._geocode_data()

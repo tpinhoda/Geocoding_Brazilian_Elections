@@ -81,7 +81,7 @@ class Processed(Election):
             f"locations_{self.geocoding_api}.csv",
         )
 
-        self.__data = pd.read_csv(filepath)
+        self.__data = pd.read_csv(filepath, low_memory=False)
 
     def _read_cities_meshblock_data(self):
         """Read the raw cities meshblock data adnd retudns a geopandas dataframe."""
@@ -106,6 +106,7 @@ class Processed(Election):
     # Calculating precision statistics
     def _convert_data_to_geopandas(self):
         """Convert pandas to geopandas dataframe."""
+        self.logger_info("Converting data to geodataframe.")
         geometry = [
             Point((row["[GEO]_LONGITUDE"], row[["[GEO]_LATITUDE"]]))
             for _, row in self.__data.iterrows()
@@ -122,13 +123,13 @@ class Processed(Election):
         # Checking if coordinates are inside city boundaries
         in_out_list = []
         for _, location in tqdm(
-            self.__data.iterrows(), total=len(self.__data), leave=False
+            self.__data.iterrows(), total=len(self.__data), leave=True
         ):
             city = self.__meshblock[
                 self.__meshblock[self.meshblock_col_id]
                 == str(location["[GEO]_ID_IBGE_CITY"])
             ]
-            # Check if point is inside polygon
+            # Check if point is inside psolygon
             if city["geometry"].contains(location["geometry"]).bool():
                 in_out_list += ["in"]
                 inside = True

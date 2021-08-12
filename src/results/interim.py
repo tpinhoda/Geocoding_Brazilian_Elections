@@ -9,7 +9,9 @@ from pandas_profiling import ProfileReport
 from src.election import Election
 
 
-MAP_CANDIDACY = {"presidente": 1, "governador": 3}
+MAP_CANDIDACY = {"president": 1, "governor": 3}
+
+MAP_BLANK_NULL = {"NULL": 96, "BLANK": 95}
 
 UNIQUE_ID = [
     "[GEO]_ID_TSE_CITY",
@@ -45,6 +47,8 @@ class Interim(Election):
     ----------
         candidacy_pos: str
             The candidacy position [presidente, governador]
+        candidates: List[str]
+            List of candidates ids
         aggregation_level: str
             The data geogrephical level of aggrevation
         geocoding_api: str
@@ -52,6 +56,7 @@ class Interim(Election):
     """
 
     candidacy_pos: str = None
+    candidates: List[str] = field(default_factory=list)
     aggregation_level: str = None
     geocoding_api: str = None
     __results_data: pd.DataFrame = field(default_factory=pd.DataFrame)
@@ -100,10 +105,10 @@ class Interim(Election):
         map_rename_cols = {
             col: f"[ELECTION]_CANDIDATE_{int(col)}"
             for col in votes.columns
-            if col not in [95, 96] and col
+            if col not in MAP_BLANK_NULL.values() and col
         }
-        map_rename_cols[95] = "[ELECTION]_BLANK"
-        map_rename_cols[96] = "[ELECTION]_NULL"
+        map_rename_cols[MAP_BLANK_NULL["BLANK"]] = "[ELECTION]_BLANK"
+        map_rename_cols[MAP_BLANK_NULL["NULL"]] = "[ELECTION]_NULL"
         return votes.rename(columns=map_rename_cols)
 
     def _get_votes_by_candidates(self) -> pd.DataFrame:
@@ -112,7 +117,8 @@ class Interim(Election):
             self.__results_data.copy()
             .set_index(UNIQUE_ID + ["[ELECTION]_ID_CANDIDATE"])
             .unstack(fill_value=0)["[ELECTION]_VOTES"]
-        )
+        )[self.candidates + list(MAP_BLANK_NULL.values())]
+
         return self._rename_votes_cols(votes)
 
     def _drop_duplicated_rows(self) -> pd.DataFrame:
@@ -141,6 +147,51 @@ class Interim(Election):
             axis=1,
             inplace=True,
         )
+
+    def _create_candidates_shares(self):
+        """Create candidate vote-shares columns"""
+        candidates_cols = self._get_candidate_cols()
+        for col in candidates_cols:
+            self.__results_data[f"{col}_(%)"] = (
+                100
+                * self.__results_data[col]
+                / self.__results_data["[ELECTION]_TURNOUT"]
+            )
+
+    def _create_blank_null_shares(self):
+        """Create blank and null votes-shares"""
+        self.__results_data["[ELECTION]_NULL_(%)"] = (
+            100
+            * self.__results_data["[ELECTION]_NULL"]
+            / self.__results_data["[ELECTION]_TURNOUT"]
+        )
+        self.__results_data["[ELECTION]_BLANK_(%)"] = (
+            100
+            * self.__results_data["[ELECTION]_BLANK"]
+            / self.__results_data["[ELECTION]_TURNOUT"]
+        )
+
+    def _create_turnout_abstention_shares(self):
+        """Creates turnout and abstention shares"""
+        self.__results_data["[ELECTION]_TURNOUT_(%)"] = (
+            100
+            * self.__results_data["[ELECTION]_TURNOUT"]
+            / self.__results_data["[ELECTION]_ELECTORATE"]
+        )
+        self.__results_data["[ELECTION]_ABSTENTIONS_(%)"] = (
+            100
+            * self.__results_data["[ELECTION]_ABSTENTIONS"]
+            / self.__results_data["[ELECTION]_ELECTORATE"]
+        )
+
+    def _create_shares_attributes(self):
+        """Creates all share attributes"""
+        self._create_candidates_shares()
+        self._create_blank_null_shares()
+        self._create_turnout_abstention_shares()
+
+    def _get_candidate_cols(self):
+        return [c for c in self.__results_data.columns if "CANDIDATE" in c]
 
     def _drop_na_cols(self) -> pd.DataFrame:
         """Drop all columns with NaN"""
@@ -190,7 +241,7 @@ class Interim(Election):
         return {
             col: (
                 "sum"
-                if is_numeric_dtype(self.__results_data[col]) and "ID" not in col
+                if is_numeric_dtype(self.__results_data[col]) and "_ID_" not in col
                 else "first"
             )
             for col in self.__results_data.columns
@@ -199,11 +250,11 @@ class Interim(Election):
     def _get_merging_keys(self) -> List[str]:
         """Generates the merging keys columns depending on the aggregatiopn level"""
         merging_keys = {
-            "polling_place": [
+            "polling place": [
                 "[GEO]_UF",
                 "[GEO]_CITY",
-                "[GEO]_POLLING_ZONE",
-                "[GEO]_POLLING_PLACE",
+                "[GEO]_ID_POLLING_ZONE",
+                "[GEO]_ID_POLLING_PLACE",
             ],
             "city": ["[GEO]_UF", "[GEO]_CITY"],
         }
@@ -235,7 +286,17 @@ class Interim(Election):
         self.__results_data = self.__results_data.join(
             self.__locations_data[not_commom_cols]
         )
-
+    
+    def _remove_unecessary_cols(self):
+        """Remove unecessary cols"""
+        unecessary_cols = {
+            "city": [col for col in self.__results_data if "POLLING" in col]
+        }
+        if unecessary_cols.get(self.aggregation_level):
+            self.__results_data.drop(
+                unecessary_cols.get(self.aggregation_level), axis=1, inplace=True
+            )
+    
     def _save_results_data(self):
         """Save results data"""
         self.__results_data.to_csv(
@@ -262,6 +323,8 @@ class Interim(Election):
         self._pre_processing_data()
         self._concatenate_list_results_data()
         self._aggregate_data()
+        self._create_shares_attributes()
         self._merge_results_and_location_data()
+        self._remove_unecessary_cols()
         self._save_results_data()
         self._generate_pandas_profiling()

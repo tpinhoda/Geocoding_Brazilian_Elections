@@ -21,7 +21,7 @@ class Processed(Election):
             The candidacy position [presidente, governador]
         geocoding_api: str
             The geocoding api to be used (Google Maps: GMAPS, OpenStreep Map: OSM)
-        levenshtesin_threshold: int
+        levenshtesin_threshold: float
             The threshold considereing the levenshtein similarity measure of addresses
         precision_filter: List[str]
             The list of precision to be filter from the dataset
@@ -51,6 +51,9 @@ class Processed(Election):
             f"data_{self.geocoding_api}.csv",
         )
         self.__data = pd.read_csv(filepath).infer_objects()
+    
+    def _remove_external_places(self) -> pd.DataFrame:
+        self.__data = self.__data[self.__data["[GEO]_UF"] != "ZZ"]
 
     def _get_candidates_cols(self):
         """Returns the candidates columns"""
@@ -71,7 +74,7 @@ class Processed(Election):
         """Filter the dataset according to parameters"""
         self.logger_info("Filtering dataset by parameters.")
         self.__data = self.__data[
-            self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] >= self.levenshtein_threshold
+            self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] >= float(self.levenshtein_threshold)
         ]
         self.__data = self.__data[
             self.__data["[GEO]_CITY_LIMITS"].isin(self.city_limits_filter)
@@ -120,6 +123,7 @@ class Processed(Election):
             folders=[self.data_name, self.aggregation_level, self.candidacy_pos.lower()]
         )
         self._read_data_csv()
+        self._remove_external_places()
         self._get_data_info()
         self._filter_data()
         self._calculate_per()
