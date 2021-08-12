@@ -307,10 +307,8 @@ class Interim(Election):
         """Generates pandas profiling"""
         self.logger_info("Generating profiling.")
         self.__results_data.reset_index(drop=True, inplace=True)
-        profiling = ProfileReport(
-            self.__results_data, dark_mode=True, orange_mode=True, explorative=True
-        )
-        profiling.to_file(output_file=join(self.cur_dir, "profiling.html"))
+        profiling = ProfileReport(df=self.__results_data, minimal=True)
+        profiling.to_file(join(self.cur_dir, "profiling.html"))
 
     def run(self):
         """Run interim process"""

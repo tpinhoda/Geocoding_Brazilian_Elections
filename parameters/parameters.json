@@ -4,8 +4,8 @@
         "org": "TSE",
         "year": "2018",
         "round": "2",
-        "aggregation_level": "polling place",
-        "geocoding_api": "GMAP"
+        "aggregation_level": "city",
+        "geocoding_api": "IBGE"
     },
     "results": {
         "data_name": "results",

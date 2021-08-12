@@ -1,11 +1,11 @@
 {
     "locations":{
-        "raw":1,
-        "interim":1,
-        "processed":1
+        "raw":0,
+        "interim":0,
+        "processed":0
     },
     "results":{
-        "raw":1,
+        "raw":0,
         "interim":1,
         "processed":1
     }
