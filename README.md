@@ -13,10 +13,10 @@ This project pre-process and geocode Brazilian electoral data. Each row of the f
 
     :warning: Even though you wont use google api the variable needs to be created, just fill with random characteres.
 
-2. Install all packages in requiments.txt.
+2. Create a  vitual enviroment and install all packages in requiments.txt.
 
     ```` bash
-        conda install --file requirements.txt
+        conda create --name <env> --file requirements.txt
     ````
 
 3. Install the project as package.
@@ -105,6 +105,7 @@ We also provide a "geocoding" for units of the federation level of aggregation b
 
 ## Project Organization
 
+```` text
     ├── LICENSE
     ├── README.md          <- The top-level README for developers using this project.
     ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
@@ -126,6 +127,7 @@ We also provide a "geocoding" for units of the federation level of aggregation b
     │   │   └── raw.py
     │   │   └── interim.py
     │   │   └── preocessed.py
---------
+    ├────
+````
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
