@@ -51,7 +51,7 @@ class Processed(Election):
             f"data_{self.geocoding_api}.csv",
         )
         self.__data = pd.read_csv(filepath).infer_objects()
-    
+
     def _remove_external_places(self) -> pd.DataFrame:
         self.__data = self.__data[self.__data["[GEO]_UF"] != "ZZ"]
 
@@ -74,7 +74,8 @@ class Processed(Election):
         """Filter the dataset according to parameters"""
         self.logger_info("Filtering dataset by parameters.")
         self.__data = self.__data[
-            self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"] >= float(self.levenshtein_threshold)
+            self.__data["[GEO]_LEVENSHTEIN_SIMILARITY"]
+            >= float(self.levenshtein_threshold)
         ]
         self.__data = self.__data[
             self.__data["[GEO]_CITY_LIMITS"].isin(self.city_limits_filter)

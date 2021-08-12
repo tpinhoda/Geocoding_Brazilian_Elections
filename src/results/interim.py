@@ -286,7 +286,7 @@ class Interim(Election):
         self.__results_data = self.__results_data.join(
             self.__locations_data[not_commom_cols]
         )
-    
+
     def _remove_unecessary_cols(self):
         """Remove unecessary cols"""
         unecessary_cols = {
@@ -296,7 +296,7 @@ class Interim(Election):
             self.__results_data.drop(
                 unecessary_cols.get(self.aggregation_level), axis=1, inplace=True
             )
-    
+
     def _save_results_data(self):
         """Save results data"""
         self.__results_data.to_csv(
