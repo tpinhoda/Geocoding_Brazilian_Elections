@@ -2,29 +2,32 @@
     "global": {
         "region": "Brazil",
         "org": "TSE",
-        "year": "2018",
+        "year": "2014",
         "round": "2",
         "aggregation_level": "city",
         "geocoding_api": "IBGE"
     },
     "results": {
         "data_name": "results",
-        "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/{}/boletim_urna_{}_turno.html",
+        "url_data": "https://www.tse.jus.br/hotsites/pesquisas-eleitorais/resultados_anos/boletim_urna/boletim_urna_2_turno-2014.html",
+        "ext": "txt",
         "candidacy_pos": "president",
-        "candidates": [13, 17],
+        "candidates": [13, 45],
         "levenshtein_threshold": 0.01,
         "precision_filter": ["TSE", "ROOFTOP", "GEOMETRIC_CENTER", "RANGE_INTERPOLATED", "APPROXIMATE", "OSM", "IBGE"],
-        "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03", "out"]
+        "city_limits_filter":["in", "boundary_0.01", "boundary_0.02", "boundary_0.03", "out"],
+        "header": ["DT_GERACAO", "HR_GERACAO", "CD_PLEITO", "CD_ELEICAO", "SG_ UF", "CD_CARGO_PERGUNTA", "CARGO_PERGUNTA", "NR_ZONA", "NR_SECAO", "NR_LOCAL_VOTACAO", "NR_PARTIDO", "PARTIDO", "CD_MUNICIPIO", "NM_MUNICIPIO", "DT_BU_RECEBIDO", "QT_APTOS", "QT_ABSTENCOES", "QT_COMPARECIMENTO", "CD_TIPO_ELEICAO", "CD_TIPO_URNA", "DESC_TIPO_URNA", "NR_VOTAVEL", "NM_VOTAVEL", "QT_VOTOS", "CD_TIPO_VOTAVEL", "NR_URNA_EFETIVADA", "CD_CARGA_URNA_1_EFETIVADA", "CD_CARGA_URNA_2_EFETIVADA", "DT_CARGA_URNA_EFETIVADA", "CD_FLASHCARD_URNA_EFETIVADA", "CARGO_PERGUNTA_SECAO"]
+
     },
     "locations": {
         "data_name": "locations",
         "url_data": "https://drive.google.com/uc?export=download&id=19kTCykQ4444xjkOj86sc0BdMMTpgkc3m",
         "url_meshblock": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2018/Brasil/BR/br_municipios.zip",
         "data_filename": "locations_by_sections.csv",
-        "meshblock_filename": "cities_meshblock.zip",
+        "meshblock_filename": "cities_meshblock",
         "save_at": 1000,
         "meshblock_crs": 4674,
-        "meshblock_col_id": "CD_GEOCMU",
+        "meshblock_col_id": "code_muni",
         "city_buffers": [0.01, 0.02, 0.03]
     }
    

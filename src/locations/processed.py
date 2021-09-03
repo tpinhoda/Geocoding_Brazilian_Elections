@@ -127,7 +127,7 @@ class Processed(Election):
         ):
             city = self.__meshblock[
                 self.__meshblock[self.meshblock_col_id]
-                == str(location["[GEO]_ID_IBGE_CITY"])
+                == location["[GEO]_ID_IBGE_CITY"]
             ]
             # Check if point is inside psolygon
             if city["geometry"].contains(location["geometry"]).bool():

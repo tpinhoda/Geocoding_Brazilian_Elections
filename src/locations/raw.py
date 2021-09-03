@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from os.path import join
 from urllib.request import urlretrieve
+from geobr import read_municipality
 import zipfile
 from src.election import Election
 
@@ -40,6 +41,12 @@ class Raw(Election):
         urlretrieve(self.url_data, join(self.cur_dir, self.data_filename))
 
     # Get meshblock files
+    def _save_meshblock_geobr(self) -> None:
+        """Load and save meshblock"""
+        self._mkdir(self.meshblock_filename.split(".")[0])
+        meshblock = read_municipality(code_muni="all", year=int(self.year))
+        meshblock.to_file(join(self.cur_dir, f"{self.meshblock_filename}.shp"))
+
     def _download_city_meshblock_data(self) -> None:
         """Donwload raw election data"""
         self._mkdir(self.meshblock_filename.split(".")[0])
@@ -83,7 +90,8 @@ class Raw(Election):
     def _empty_folder_run(self):
         """Run without files in the folder"""
         self._download_location_raw_data()
-        self._get_city_meshblock_file()
+        self._save_meshblock_geobr()
+        # self._get_city_meshblock_file()
 
     def run(self) -> None:
         """Generate election raw data"""

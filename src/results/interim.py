@@ -59,6 +59,7 @@ class Interim(Election):
     candidates: List[str] = field(default_factory=list)
     aggregation_level: str = None
     geocoding_api: str = None
+    header: List[str] = field(default_factory=list)
     __results_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     __locations_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     __list_results_data: List[pd.DataFrame] = field(default_factory=list)
@@ -70,13 +71,23 @@ class Interim(Election):
             self.data_name,
             data_filename,
         )
-        self.__results_data = pd.read_csv(
-            filepath,
-            sep=";",
-            encoding="latin1",
-            na_values=["#NULO#", -1, -3],
-            low_memory=False,
-        ).infer_objects()
+        if self.header:
+            self.__results_data = pd.read_csv(
+                filepath,
+                sep=";",
+                encoding="latin1",
+                na_values=["#NULO#", -1, -3],
+                low_memory=False,
+                names=self.header,
+            ).infer_objects()
+        else:
+            self.__results_data = pd.read_csv(
+                filepath,
+                sep=";",
+                encoding="latin1",
+                na_values=["#NULO#", -1, -3],
+                low_memory=False,
+            ).infer_objects()
 
     def _read_locations_csv(self) -> pd.DataFrame:
         """Reads location csv from processed state folder"""
@@ -90,8 +101,13 @@ class Interim(Election):
 
     def _rename_cols(self) -> pd.DataFrame:
         """Rename columns"""
-        self.__results_data.rename(columns=MAP_COL_RENAME, inplace=True)
-        self.__results_data = self.__results_data[MAP_COL_RENAME.values()]
+        self.__results_data.rename(
+            columns=MAP_COL_RENAME, inplace=True, errors="ignore"
+        )
+        cols_filter = [
+            c for c in MAP_COL_RENAME.values() if c in self.__results_data.columns
+        ]
+        self.__results_data = self.__results_data[cols_filter]
 
     def _filter_by_candidacy_pos(self):
         """Filter election results by candidacy position"""
@@ -205,7 +221,12 @@ class Interim(Election):
 
     def _fill_na_electorate_biometry(self) -> pd.DataFrame:
         """Fill electorate biometry column in results data nans with zero"""
-        self.__results_data["[ELECTION]_ELECTORATE_BIOMETRIA"].fillna(0, inplace=True)
+        try:
+            self.__results_data["[ELECTION]_ELECTORATE_BIOMETRIA"].fillna(
+                0, inplace=True
+            )
+        except KeyError:
+            pass
 
     def _convert_cols_to_str(self) -> pd.DataFrame:
         """Convert all columns names from results data to str"""

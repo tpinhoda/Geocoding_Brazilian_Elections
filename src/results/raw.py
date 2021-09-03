@@ -1,6 +1,6 @@
 """Generate raw data for election results"""
 from os.path import join
-from typing import List
+from typing import List, Optional
 import re
 import zipfile
 from dataclasses import dataclass, field
@@ -19,11 +19,14 @@ class Raw(Election):
     Attributes
     ----------
         url: The url to collect the raw data
+        ext: file extension
         html: the html page where the raw data can be downloaded
         links: list of links to download raw data
+
     """
 
     url_data: str = None
+    ext: str = None
     __html: str = None
     __links: List[str] = field(default_factory=list)
 
@@ -33,7 +36,7 @@ class Raw(Election):
 
     def _download_html(self) -> None:
         """Donwload the election results page"""
-        self.url_data = self._fill_url()
+        # self.url_data = self._fill_url()
         self.__html = urlopen(self.url_data).read().decode("utf-8")
 
     def _get_links(self) -> None:
@@ -56,7 +59,7 @@ class Raw(Election):
         for zip_filename in tqdm(list_filename, desc="Unziping", leave=False):
             with zipfile.ZipFile(join(self.cur_dir, zip_filename), "r") as zip_ref:
                 for filename in zip_ref.namelist():
-                    if filename.endswith(".csv"):
+                    if filename.endswith(f".{self.ext}"):
                         zip_ref.extract(filename, self.cur_dir)
 
     def _remove_zip_files(self) -> None:

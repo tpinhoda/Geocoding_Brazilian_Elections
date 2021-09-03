@@ -265,13 +265,16 @@ class Interim(Election):
             filename,
             f"{filename}.shp",
         )
-        meshblock = gpd.read_file(meshblock_filepath)
+        meshblock = gpd.read_file(meshblock_filepath).infer_objects()
         meshblock["geometry"] = meshblock["geometry"].to_crs(crs=self.meshblock_crs)
         meshblock["Y"] = meshblock.to_crs("+proj=cea").centroid.to_crs(meshblock.crs).y
         meshblock["X"] = meshblock.to_crs("+proj=cea").centroid.to_crs(meshblock.crs).x
+        self.__data["[GEO]_ID_IBGE_CITY"] = self.__data["[GEO]_ID_IBGE_CITY"].astype(
+            "float64"
+        )
 
         self.__data = self.__data.merge(
-            meshblock[["CD_GEOCMU", "X", "Y"]],
+            meshblock[[self.meshblock_col_id, "X", "Y"]],
             left_on="[GEO]_ID_IBGE_CITY",
             right_on=self.meshblock_col_id,
             how="left",
