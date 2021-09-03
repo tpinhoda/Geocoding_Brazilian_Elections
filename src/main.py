@@ -11,7 +11,7 @@ from src.pipeline import Pipeline
 
 
 def initialize_coloredlog():
-    """Install the colored log package"""
+    """Install the colored log package."""
     coloredlogs_install()
 
 
